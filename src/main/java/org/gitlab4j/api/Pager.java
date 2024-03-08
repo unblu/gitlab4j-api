@@ -3,8 +3,10 @@ package org.gitlab4j.api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -44,11 +46,9 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     private int itemsPerPage;
     private int totalPages;
     private int totalItems;
-    private int currentPage;
+    private int currentPage = 0;
     private int kaminariNextPage;
 
-    private List<String> pageParam = new ArrayList<>(1);
-    private List<T> currentItems;
     private Stream<T> pagerStream = null;
 
     private AbstractApi api;
@@ -58,6 +58,8 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     private static JacksonJson jacksonJson = new JacksonJson();
     private static ObjectMapper mapper = jacksonJson.getObjectMapper();
     private JavaType javaType;
+
+    private Map<Integer, Page> pages = new HashMap<>();
 
     /**
      * Creates a Pager instance to access the API through the specified path and query parameters.
@@ -70,7 +72,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @throws GitLabApiException if any error occurs
      */
     public Pager(AbstractApi api, Class<T> type, int itemsPerPage, MultivaluedMap<String, String> queryParams, Object... pathArgs) throws GitLabApiException {
-
+        this.api = api;
         javaType = mapper.getTypeFactory().constructCollectionType(List.class, type);
 
         if (itemsPerPage < 1) {
@@ -84,33 +86,30 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             queryParams.remove(PER_PAGE_PARAM);
             queryParams.add(PER_PAGE_PARAM, Integer.toString(itemsPerPage));
         }
+        this.queryParams = queryParams;
+        this.pathArgs = pathArgs;
 
-        // Set the page param to 1
-        pageParam = new ArrayList<>();
-        pageParam.add("1");
-        queryParams.put(PAGE_PARAM, pageParam);
-        Response response = api.get(Response.Status.OK, queryParams, pathArgs);
 
-        try {
-            currentItems = mapper.readValue((InputStream) response.getEntity(), javaType);
-        } catch (Exception e) {
-            throw new GitLabApiException(e);
-        }
 
-        if (currentItems == null) {
+        Page page = new Page(1);
+        pages.put(page.getPageNumber(), page);
+
+        Response response = fetchPage(page);
+
+        if (page.items == null) {
             throw new GitLabApiException("Invalid response from from GitLab server");
         }
 
-        this.api = api;
-        this.queryParams = queryParams;
-        this.pathArgs = pathArgs;
+
+
+
         this.itemsPerPage = getIntHeaderValue(response, PER_PAGE);
 
         // Some API endpoints do not return the "X-Per-Page" header when there is only 1 page, check for that condition and act accordingly
         if (this.itemsPerPage == -1) {
             this.itemsPerPage = itemsPerPage;
             totalPages = 1;
-            totalItems = currentItems.size();
+            totalItems = page.items.size();
             return;
         }
 
@@ -125,7 +124,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             int nextPage = getIntHeaderValue(response, NEXT_PAGE_HEADER);
             if (nextPage < 2) {
                 totalPages = 1;
-                totalItems = currentItems.size();
+                totalItems = page.items.size();
             } else {
                 kaminariNextPage = 2;
             }
@@ -171,16 +170,6 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         } catch (NumberFormatException nfe) {
             throw new GitLabApiException("Invalid '" + key + "' header value (" + value + ") from server");
         }
-    }
-
-    /**
-     * Sets the "page" query parameter.
-     *
-     * @param page the value for the "page" query parameter
-     */
-    private void setPageParam(int page) {
-        pageParam.set(0, Integer.toString(page));
-        queryParams.put(PAGE_PARAM, pageParam);
     }
 
     /**
@@ -305,11 +294,6 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
         if (currentPage == 0 && pageNumber == 1) {
             currentPage = 1;
-            return (currentItems);
-        }
-
-        if (currentPage == pageNumber) {
-            return (currentItems);
         }
 
         if (pageNumber > totalPages && pageNumber > kaminariNextPage) {
@@ -319,20 +303,53 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         }
 
         try {
+            Page page = pages.get(pageNumber);
+            synchronized (this) {
+                page = pages.get(pageNumber);
+                if (page == null) {
+                    page = new Page(pageNumber);
+                    pages.put(page.pageNumber, page);
+                }
+            }
 
-            setPageParam(pageNumber);
-            Response response = api.get(Response.Status.OK, queryParams, pathArgs);
-            currentItems = mapper.readValue((InputStream) response.getEntity(), javaType);
+            synchronized (page) {
+                if (page.items != null) {
+                    return page.items;
+                }
+            }
+
+            Response response = fetchPage(page);
             currentPage = pageNumber;
 
             if (kaminariNextPage > 0) {
                 kaminariNextPage = getIntHeaderValue(response, NEXT_PAGE_HEADER);
             }
 
-            return (currentItems);
+            return (page.items);
 
-        } catch (GitLabApiException | IOException e) {
+        } catch (GitLabApiException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private Response fetchPage(Page page) throws GitLabApiException {
+        synchronized (page) {
+            if (page.items != null) throw new RuntimeException("page already fetched");
+
+            MultivaluedMap<String, String> effectiveQqueryParams = new GitLabApiForm().asMap();
+            List<String> pageParam = new ArrayList<>();
+            pageParam.add(Integer.toString(page.pageNumber));
+            effectiveQqueryParams.put(PAGE_PARAM, pageParam);
+
+            Response response = api.get(Response.Status.OK, queryParams, pathArgs);
+
+            try {
+                page.setItems(mapper.readValue((InputStream) response.getEntity(), javaType));
+            } catch (Exception e) {
+                throw new GitLabApiException(e);
+            }
+
+            return response;
         }
     }
 
@@ -415,5 +432,27 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         }
 
         throw new IllegalStateException("Stream already issued");
+    }
+
+
+    private class Page {
+        private Integer pageNumber;
+        private List<T> items;
+
+        Page(Integer pageNumber) {
+            this.pageNumber = pageNumber;
+        }
+
+        void setItems(List<T> items) {
+            this.items = items;
+        }
+
+        public List<T> getItems() {
+            return items;
+        }
+
+        Integer getPageNumber() {
+            return pageNumber;
+        }
     }
 }
