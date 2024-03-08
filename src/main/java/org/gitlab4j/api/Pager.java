@@ -419,4 +419,8 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
         throw new IllegalStateException("Stream already issued");
     }
+
+    private class Page {
+
+    }
 }
