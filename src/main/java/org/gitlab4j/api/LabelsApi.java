@@ -1,10 +1,13 @@
 package org.gitlab4j.api;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
 import org.gitlab4j.api.models.Label;
@@ -33,6 +36,18 @@ public class LabelsApi extends AbstractApi {
     }
 
     /**
+     * Get all labels of the specified project.
+     *
+     * @param projectIdOrPath the project in the form of an Long(ID), String(path), or Project instance
+     * @param includeAncestorGroups if labels from ancestor groups should be included
+     * @return a list of project's labels
+     * @throws GitLabApiException if any exception occurs
+     */
+    public List<Label> getProjectLabels(Object projectIdOrPath, boolean includeAncestorGroups) throws GitLabApiException {
+        return (getProjectLabels(projectIdOrPath, includeAncestorGroups,  getDefaultPerPage()).all());
+    }
+
+    /**
      * Get a Pager of all labels of the specified project.
      *
      * @param projectIdOrPath the project in the form of an Long(ID), String(path), or Project instance
@@ -41,7 +56,22 @@ public class LabelsApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public Pager<Label> getProjectLabels(Object projectIdOrPath, int itemsPerPage) throws GitLabApiException {
-        return (new Pager<Label>(this, Label.class, itemsPerPage, null,
+        return getProjectLabels(projectIdOrPath, true, itemsPerPage);
+    }
+
+    /**
+     * Get a Pager of all labels of the specified project.
+     *
+     * @param projectIdOrPath the project in the form of an Long(ID), String(path), or Project instance
+     * @param includeAncestorGroups if labels from ancestor groups should be included
+     * @param itemsPerPage the number of items per page
+     * @return a list of project's labels in the specified range
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Pager<Label> getProjectLabels(Object projectIdOrPath, boolean includeAncestorGroups,  int itemsPerPage) throws GitLabApiException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("include_ancestor_groups", Collections.singletonList(String.valueOf(includeAncestorGroups)));
+        return (new Pager<Label>(this, Label.class, itemsPerPage, queryParams,
                 "projects", getProjectIdOrPath(projectIdOrPath), "labels"));
     }
 
@@ -178,6 +208,7 @@ public class LabelsApi extends AbstractApi {
         return (response.readEntity(Label.class));
     }
 
+
     /**
      * Get all labels of the specified group.
      *
@@ -186,8 +217,21 @@ public class LabelsApi extends AbstractApi {
      * @throws org.gitlab4j.api.GitLabApiException if any exception occurs
      */
     public List<Label> getGroupLabels(Object groupIdOrPath) throws GitLabApiException {
-        return (getGroupLabels(groupIdOrPath, getDefaultPerPage()).all());
+        return (getGroupLabels(groupIdOrPath, true, getDefaultPerPage()).all());
     }
+
+    /**
+     * Get all labels of the specified group.
+     *
+     * @param groupIdOrPath the group in the form of an Long(ID), String(path), or Group instance
+     * @param includeAncestorGroups if labels from ancestor groups should be included
+     * @return a list of group's labels
+     * @throws org.gitlab4j.api.GitLabApiException if any exception occurs
+     */
+    public List<Label> getGroupLabels(Object groupIdOrPath, boolean includeAncestorGroups) throws GitLabApiException {
+        return (getGroupLabels(groupIdOrPath, includeAncestorGroups, getDefaultPerPage()).all());
+    }
+
 
     /**
      * Get a Pager of all labels of the specified group.
@@ -198,7 +242,22 @@ public class LabelsApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public Pager<Label> getGroupLabels(Object groupIdOrPath, int itemsPerPage) throws GitLabApiException {
-        return (new Pager<Label>(this, Label.class, itemsPerPage, null,
+        return getGroupLabels(groupIdOrPath, true, itemsPerPage);
+    }
+
+    /**
+     * Get a Pager of all labels of the specified group.
+     *
+     * @param groupIdOrPath the group in the form of an Long(ID), String(path), or Group instance
+     * @param includeAncestorGroups if labels from ancestor groups should be included
+     * @param itemsPerPage the number of items per page
+     * @return a list of group's labels in the specified range
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Pager<Label> getGroupLabels(Object groupIdOrPath, boolean includeAncestorGroups, int itemsPerPage) throws GitLabApiException {
+        MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
+        queryParams.put("include_ancestor_groups", Collections.singletonList(String.valueOf(includeAncestorGroups)));
+        return (new Pager<Label>(this, Label.class, itemsPerPage, queryParams,
                 "groups", getGroupIdOrPath(groupIdOrPath), "labels"));
     }
 
