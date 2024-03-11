@@ -341,7 +341,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             pageParam.add(Integer.toString(page.pageNumber));
             effectiveQqueryParams.put(PAGE_PARAM, pageParam);
 
-            Response response = api.get(Response.Status.OK, queryParams, pathArgs);
+            Response response = api.get(Response.Status.OK, effectiveQqueryParams, pathArgs);
 
             try {
                 page.setItems(mapper.readValue((InputStream) response.getEntity(), javaType));
