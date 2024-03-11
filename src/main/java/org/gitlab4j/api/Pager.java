@@ -351,7 +351,6 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             } catch (Exception e) {
                 throw new GitLabApiException(e);
             }
-
             return response;
         }
     }
