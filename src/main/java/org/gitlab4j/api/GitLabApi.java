@@ -471,6 +471,7 @@ public class GitLabApi implements AutoCloseable {
         }
 
         gitLabApi.defaultPerPage = this.defaultPerPage;
+        gitLabApi.defaultPageFetchParallel = this.defaultPageFetchParallel;
         return (gitLabApi);
     }
 

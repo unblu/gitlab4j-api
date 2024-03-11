@@ -372,7 +372,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @throws GitLabApiException if any error occurs
      */
     public List<T> all(int parallel) throws GitLabApiException {
-        if (parallel == 1) {
+        if (parallel < 2) {
             return fetchAllSynchronously();
         } else {
             return fetchAllParallel(parallel);
