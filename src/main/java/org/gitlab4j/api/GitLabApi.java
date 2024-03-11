@@ -31,6 +31,9 @@ public class GitLabApi implements AutoCloseable {
     /** GitLab4J default per page.  GitLab will ignore anything over 100. */
     public static final int DEFAULT_PER_PAGE = 96;
 
+    /** parallel fetching of pages is only supported if a   */
+    public static final int DEFAULT_PAGE_FETCH_PARALLEL = 1;
+
     /** Specifies the version of the GitLab API to communicate with. */
     public enum ApiVersion {
         V3, V4;
@@ -49,6 +52,8 @@ public class GitLabApi implements AutoCloseable {
     private String gitLabServerUrl;
     private Map<String, Object> clientConfigProperties;
     private int defaultPerPage = DEFAULT_PER_PAGE;
+    private int defaultPageFetchParallel = DEFAULT_PAGE_FETCH_PARALLEL;
+    private ParallelTaskExecutor parallelTaskExecutor = null;
 
     private ApplicationsApi applicationsApi;
     private ApplicationSettingsApi applicationSettingsApi;
@@ -779,6 +784,37 @@ public class GitLabApi implements AutoCloseable {
     public void setDefaultPerPage(int defaultPerPage) {
         this.defaultPerPage = defaultPerPage;
     }
+
+    /**
+     * Get the default number of threads to use when fetching pages in parallel
+     *
+     * @return the default number of threads to use when fetching pages in parallel
+     */
+    public int getDefaultPageFetchParallel() {
+        return (defaultPageFetchParallel);
+    }
+
+    /**
+     * Set the default number of threads to use when fetching pages in parallel
+     *
+     * @param defaultPageFetchParallel the new default number of threads to use when fetching pages in parallel
+     */
+    public void setDefaultPageFetchParallel(int defaultPageFetchParallel) { this.defaultPageFetchParallel = defaultPageFetchParallel;}
+
+    /**
+     * Sets the parallel task executor for this instance.
+     *
+     * @param parallelTaskExecutor the parallel task executor to be used
+     */
+    public void setParallelTaskExecutor(ParallelTaskExecutor parallelTaskExecutor) { this.parallelTaskExecutor = parallelTaskExecutor;}
+
+
+    /**
+     * Get the parallel task executor for this instance
+     *
+     * @return the parallel task executor for this instance if set
+     */
+    public ParallelTaskExecutor getParallelTaskExecutor() {return this.parallelTaskExecutor;}
 
     /**
      * Return the GitLabApiClient associated with this instance. This is used by all the sub API classes

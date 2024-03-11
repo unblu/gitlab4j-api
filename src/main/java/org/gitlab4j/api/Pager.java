@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -360,18 +362,61 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @throws GitLabApiException if any error occurs
      */
     public List<T> all() throws GitLabApiException {
+        return all(api.gitLabApi.getDefaultPageFetchParallel());
+    }
 
-        // Make sure that current page is 0, this will ensure the whole list is fetched
-        // regardless of what page the instance is currently on.
-        currentPage = 0;
+    /**
+     * Gets all the items from each page as a single List instance.
+     * @param parallel number of parallel fetches to use
+     * @return all the items from each page as a single List instance
+     * @throws GitLabApiException if any error occurs
+     */
+    public List<T> all(int parallel) throws GitLabApiException {
+        if (parallel == 1) {
+            return fetchAllSynchronously();
+        } else {
+            return fetchAllParallel(parallel);
+        }
+    }
+
+    private List<T> fetchAllParallel(int parallel) throws GitLabApiException {
         List<T> allItems = new ArrayList<>(Math.max(totalItems, 0));
+        ParallelTaskExecutor taskExecutor = api.gitLabApi.getParallelTaskExecutor();
+        if (taskExecutor == null) {
+            throw new IllegalStateException("no parallel task executor set, cannot fetch pages in parallel");
+        }
+
+        List<Callable<List<T>>> tasks = new ArrayList<>();
+        for(int i=1; i<=totalPages; i++) {
+            final int pageNumber = i;
+            tasks.add(() -> {
+                return page(pageNumber);
+            });
+        }
+        try {
+            List<List<T>> results = taskExecutor.execute(tasks);
+            for(List<T> items : results) {
+                allItems.addAll(items);
+            }
+            return allItems;
+        } catch (Exception e) {
+            if (e instanceof GitLabApiException) {
+                throw (GitLabApiException) e;
+            }
+            throw new GitLabApiException(e);
+        }
+    }
+
+    private List<T> fetchAllSynchronously() {
+        List<T> allItems = new ArrayList<>(Math.max(totalItems, 0));
+        currentPage = 0;
+
 
         // Iterate through the pages and append each page of items to the list
         while (hasNext()) {
             allItems.addAll(next());
         }
-
-        return (allItems);
+        return allItems;
     }
 
     /**
