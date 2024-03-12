@@ -32,7 +32,7 @@ public class GitLabApi implements AutoCloseable {
     public static final int DEFAULT_PER_PAGE = 96;
 
     /** parallel fetching of pages is only supported if a   */
-    public static final int DEFAULT_PAGE_FETCH_PARALLEL = 1;
+    public static final boolean DEFAULT_PAGE_FETCH_PARALLEL = false;
 
     /** Specifies the version of the GitLab API to communicate with. */
     public enum ApiVersion {
@@ -52,7 +52,7 @@ public class GitLabApi implements AutoCloseable {
     private String gitLabServerUrl;
     private Map<String, Object> clientConfigProperties;
     private int defaultPerPage = DEFAULT_PER_PAGE;
-    private int defaultPageFetchParallel = DEFAULT_PAGE_FETCH_PARALLEL;
+    private boolean defaultPageFetchParallel = DEFAULT_PAGE_FETCH_PARALLEL;
     private ParallelTaskExecutor parallelTaskExecutor = null;
 
     private ApplicationsApi applicationsApi;
@@ -787,20 +787,20 @@ public class GitLabApi implements AutoCloseable {
     }
 
     /**
-     * Get the default number of threads to use when fetching pages in parallel
+     * If pages should be fetched in parallel
      *
      * @return the default number of threads to use when fetching pages in parallel
      */
-    public int getDefaultPageFetchParallel() {
+    public boolean isDefaultPageFetchParallel() {
         return (defaultPageFetchParallel);
     }
 
     /**
-     * Set the default number of threads to use when fetching pages in parallel
+     * Set if pages should be fetched in parallel by default
      *
      * @param defaultPageFetchParallel the new default number of threads to use when fetching pages in parallel
      */
-    public void setDefaultPageFetchParallel(int defaultPageFetchParallel) { this.defaultPageFetchParallel = defaultPageFetchParallel;}
+    public void setDefaultPageFetchParallel(boolean defaultPageFetchParallel) { this.defaultPageFetchParallel = defaultPageFetchParallel;}
 
     /**
      * Sets the parallel task executor for this instance.

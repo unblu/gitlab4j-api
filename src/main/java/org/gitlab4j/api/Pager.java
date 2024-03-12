@@ -362,7 +362,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @throws GitLabApiException if any error occurs
      */
     public List<T> all() throws GitLabApiException {
-        return all(api.gitLabApi.getDefaultPageFetchParallel());
+        return all(api.gitLabApi.isDefaultPageFetchParallel());
     }
 
     /**
@@ -371,15 +371,15 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @return all the items from each page as a single List instance
      * @throws GitLabApiException if any error occurs
      */
-    public List<T> all(int parallel) throws GitLabApiException {
-        if (parallel < 2) {
-            return fetchAllSynchronously();
+    public List<T> all(boolean parallel) throws GitLabApiException {
+        if (parallel) {
+            return fetchAllParallel();
         } else {
-            return fetchAllParallel(parallel);
+            return fetchAllSynchronously();
         }
     }
 
-    private List<T> fetchAllParallel(int parallel) throws GitLabApiException {
+    private List<T> fetchAllParallel() throws GitLabApiException {
         List<T> allItems = new ArrayList<>(Math.max(totalItems, 0));
         ParallelTaskExecutor taskExecutor = api.gitLabApi.getParallelTaskExecutor();
         if (taskExecutor == null) {
@@ -389,20 +389,17 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         List<Callable<List<T>>> tasks = new ArrayList<>();
         for(int i=1; i<=totalPages; i++) {
             final int pageNumber = i;
-            tasks.add(() -> {
-                return page(pageNumber);
-            });
+            tasks.add(() -> page(pageNumber));
         }
         try {
             List<List<T>> results = taskExecutor.execute(tasks);
-            for(List<T> items : results) {
+            for (List<T> items : results) {
                 allItems.addAll(items);
             }
             return allItems;
+        } catch (GitLabApiException ge) {
+            throw ge;
         } catch (Exception e) {
-            if (e instanceof GitLabApiException) {
-                throw (GitLabApiException) e;
-            }
             throw new GitLabApiException(e);
         }
     }
