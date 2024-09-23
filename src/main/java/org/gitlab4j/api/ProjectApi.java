@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.gitlab4j.api.GitLabApi.ApiVersion;
@@ -1069,6 +1070,24 @@ public class ProjectApi extends AbstractApi implements Constants {
     }
 
     /**
+     * Gets the project avatar.
+     * Only working with GitLab 16.9 and above.
+     *
+     * <pre><code>GitLab Endpoint: GET /projects/:id/avatar</code></pre>
+     *
+     * @param projectIdOrPath the project in the form of an Long(ID), String(path), or Project instance
+     * @return an InputStream to read the raw file from
+     * @throws GitLabApiException if any exception occurs
+     */
+    public InputStream getAvatar(Object projectIdOrPath) throws GitLabApiException {
+
+        Response response = getWithAccepts(Response.Status.OK, null,  MediaType.MEDIA_TYPE_WILDCARD,
+                "projects", getProjectIdOrPath(projectIdOrPath), "avatar");
+        return (response.readEntity(InputStream.class));
+
+    }
+
+    /**
      * Creates a Project
      *
      * @param name The name of the project
@@ -1336,12 +1355,14 @@ public class ProjectApi extends AbstractApi implements Constants {
             formData.withParam("issue_branch_template", project.getIssueBranchTemplate());
             formData.withParam("merge_commit_template", project.getMergeCommitTemplate());
             formData.withParam("squash_commit_template", project.getSquashCommitTemplate());
+            formData.withParam("merge_requests_template", project.getMergeRequestsTemplate());
+            formData.withParam("issues_template", project.getIssuesTemplate());
 
             if (project.getTagList() != null && !project.getTagList().isEmpty()) {
                 formData.withParam("tag_list", String.join(",", project.getTagList()));
             }
 
-            if (project.getTopics() != null && !project.getTopics().isEmpty()) {
+            if (project.getTopics() != null) {
                 formData.withParam("topics", String.join(",", project.getTopics()));
             }
         }
@@ -2192,7 +2213,7 @@ public class ProjectApi extends AbstractApi implements Constants {
      * @throws GitLabApiException if any exception occurs
      */
     public ProjectHook addHook(Object projectIdOrPath, String url, ProjectHook enabledHooks,
-            boolean enableSslVerification, String secretToken) throws GitLabApiException {
+            Boolean enableSslVerification, String secretToken) throws GitLabApiException {
 
         GitLabApiForm formData = new GitLabApiForm()
                 .withParam("url", url, true)
@@ -2212,6 +2233,7 @@ public class ProjectApi extends AbstractApi implements Constants {
                 .withParam("deployment_events", enabledHooks.getDeploymentEvents(), false)
                 .withParam("releases_events", enabledHooks.getReleasesEvents(), false)
                 .withParam("deployment_events", enabledHooks.getDeploymentEvents(), false)
+                .withParam("description", enabledHooks.getDescription(), false)
                 .withParam("token", secretToken, false);
         Response response = post(Response.Status.CREATED, formData, "projects", getProjectIdOrPath(projectIdOrPath), "hooks");
         return (response.readEntity(ProjectHook.class));
@@ -2219,6 +2241,7 @@ public class ProjectApi extends AbstractApi implements Constants {
 
     /**
      * Adds a hook to project.
+     * Convenience method for {@link #addHook(Object, String, ProjectHook, Boolean, String)}
      *
      * <pre><code>GitLab Endpoint: POST /projects/:id/hooks</code></pre>
      *
@@ -2232,15 +2255,32 @@ public class ProjectApi extends AbstractApi implements Constants {
      */
     public ProjectHook addHook(Object projectIdOrPath, String url, boolean doPushEvents,
             boolean doIssuesEvents, boolean doMergeRequestsEvents) throws GitLabApiException {
+        return addHook(projectIdOrPath, url, doPushEvents, doIssuesEvents, doMergeRequestsEvents, null);
+    }
 
-        GitLabApiForm formData = new GitLabApiForm()
-                .withParam("url", url)
-                .withParam("push_events", doPushEvents)
-                .withParam("issues_events", doIssuesEvents)
-                .withParam("merge_requests_events", doMergeRequestsEvents);
-
-        Response response = post(Response.Status.CREATED, formData, "projects", getProjectIdOrPath(projectIdOrPath), "hooks");
-        return (response.readEntity(ProjectHook.class));
+    /**
+     * Adds a hook to project.
+     * Convenience method for {@link #addHook(Object, String, ProjectHook, Boolean, String)}
+     *
+     * <pre><code>GitLab Endpoint: POST /projects/:id/hooks</code></pre>
+     *
+     * @param projectIdOrPath the project in the form of an Long(ID), String(path), or Project instance, required
+     * @param url the callback URL for the hook
+     * @param doPushEvents flag specifying whether to do push events
+     * @param doIssuesEvents flag specifying whether to do issues events
+     * @param doMergeRequestsEvents flag specifying whether to do merge requests events
+     * @param doNoteEvents flag specifying whether to do note events
+     * @return the added ProjectHook instance
+     * @throws GitLabApiException if any exception occurs
+     */
+    public ProjectHook addHook(Object projectIdOrPath, String url, Boolean doPushEvents,
+            Boolean doIssuesEvents, Boolean doMergeRequestsEvents, Boolean doNoteEvents) throws GitLabApiException {
+        ProjectHook enabledHooks = new ProjectHook()
+            .withPushEvents(doPushEvents)
+            .withIssuesEvents(doIssuesEvents)
+            .withMergeRequestsEvents(doMergeRequestsEvents)
+            .withNoteEvents(doNoteEvents);
+        return addHook(projectIdOrPath, url, enabledHooks , null, null);
     }
 
     /**
@@ -2297,6 +2337,7 @@ public class ProjectApi extends AbstractApi implements Constants {
             .withParam("repository_update_events", hook.getRepositoryUpdateEvents(), false)
             .withParam("releases_events", hook.getReleasesEvents(), false)
             .withParam("deployment_events", hook.getDeploymentEvents(), false)
+            .withParam("description", hook.getDescription(), false)
             .withParam("token", hook.getToken(), false);
 
         Response response = put(Response.Status.OK, formData.asMap(), "projects", hook.getProjectId(), "hooks", hook.getId());
@@ -4005,7 +4046,25 @@ public class ProjectApi extends AbstractApi implements Constants {
      * @throws GitLabApiException if any exception occurs
      */
     public ProjectAccessToken rotateProjectAccessToken(Object projectIdOrPath, Long tokenId) throws GitLabApiException {
-        Response response = post(Response.Status.OK, (Object) null, "projects", getProjectIdOrPath(projectIdOrPath), "access_tokens", tokenId, "rotate");
+        return rotateProjectAccessToken(projectIdOrPath, tokenId, null);
+    }
+
+    /**
+     * Rotates the given project access token.
+     * The token is revoked and a new one which will expire in one week is created to replace it.
+     * Only working with GitLab 16.0 and above.
+     *
+     * @param projectIdOrPath the project in the form of a Long(ID), String(path), or Project instance
+     * @param tokenId the id
+     * @param expiresAt Expiration date of the access token
+     * @return the newly created ProjectAccessToken.
+     * @throws GitLabApiException if any exception occurs
+     */
+    public ProjectAccessToken rotateProjectAccessToken(Object projectIdOrPath, Long tokenId, Date expiresAt) throws GitLabApiException {
+        GitLabApiForm formData = new GitLabApiForm()
+                .withParam("expires_at", ISO8601.dateOnly(expiresAt));
+
+        Response response = post(Response.Status.OK, formData, "projects", getProjectIdOrPath(projectIdOrPath), "access_tokens", tokenId, "rotate");
         return (response.readEntity(ProjectAccessToken.class));
     }
 

@@ -1,6 +1,7 @@
 package org.gitlab4j.api;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
@@ -1311,6 +1313,26 @@ public class GroupApi extends AbstractApi {
         addSamlGroupLink(groupIdOrPath, samlGroupName, groupAccess.toValue());
     }
 
+     /**
+     * Adds an SAML group link.
+     *
+     * <pre><code>GitLab Endpoint: POST /groups/:id/saml_group_links</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param samlGroupName the name of the SAML group
+     * @param groupAccess the minimum access level for members of the SAML group
+     * @param memberRoleId the id of the custom member role to assign
+     * @throws GitLabApiException if any exception occurs
+     */
+    public void addSamlGroupLink(Object groupIdOrPath, String samlGroupName, AccessLevel groupAccess, int memberRoleId) throws GitLabApiException {
+
+        if (groupAccess == null) {
+            throw new RuntimeException("groupAccess cannot be null or empty");
+        }
+
+        addSamlGroupLink(groupIdOrPath, samlGroupName, groupAccess.toValue(), memberRoleId);
+    }
+
     /**
      * Adds an SAML group link.
      *
@@ -1322,9 +1344,25 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public void addSamlGroupLink(Object groupIdOrPath, String samlGroupName, Integer groupAccess) throws GitLabApiException {
+        addSamlGroupLink(groupIdOrPath, samlGroupName, groupAccess, null);
+    }
+
+    /**
+     * Adds an SAML group link.
+     *
+     * <pre><code>GitLab Endpoint: POST /groups/:id/saml_group_links</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param samlGroupName the name of the SAML group
+     * @param groupAccess the minimum access level for members of the SAML group
+     * @param memberRoleId the id of the custom member role to assign
+     * @throws GitLabApiException if any exception occurs
+     */
+    public void addSamlGroupLink(Object groupIdOrPath, String samlGroupName, Integer groupAccess, Integer memberRoleId) throws GitLabApiException {
         GitLabApiForm formData = new GitLabApiForm()
             .withParam("saml_group_name",  samlGroupName, true)
-            .withParam("access_level", groupAccess, true);
+            .withParam("access_level", groupAccess, true)
+            .withParam("member_role_id", memberRoleId);
         post(Response.Status.CREATED, formData, "groups", getGroupIdOrPath(groupIdOrPath), "saml_group_links");
     }
 
@@ -1880,6 +1918,24 @@ public class GroupApi extends AbstractApi {
     }
 
     /**
+     * Gets the group avatar.
+     * Only working with GitLab 14.0 and above.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/avatar</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @return an InputStream to read the raw file from
+     * @throws GitLabApiException if any exception occurs
+     */
+    public InputStream getAvatar(Object groupIdOrPath) throws GitLabApiException {
+
+        Response response = getWithAccepts(Response.Status.OK, null,  MediaType.MEDIA_TYPE_WILDCARD,
+                "groups", getGroupIdOrPath(groupIdOrPath), "avatar");
+        return (response.readEntity(InputStream.class));
+
+    }
+
+    /**
      * Share group with another group. Returns 200 and the group details on success.
      *
      * <pre><code>GitLab Endpoint: POST /groups/:id/share</code></pre>
@@ -2099,7 +2155,7 @@ public class GroupApi extends AbstractApi {
         GitLabApiForm formData = new GitLabApiForm()
                 .withParam("name", name, true)
                 .withParam("scopes", Arrays.asList(scopes))
-                .withParam("expires_at", expiresAt)
+                .withParam("expires_at", ISO8601.dateOnly(expiresAt))
                 .withParam("access_level", accessLevel);
 
         Response response = post(Response.Status.CREATED, formData, "groups", getGroupIdOrPath(groupIdOrPath), "access_tokens");
@@ -2117,9 +2173,29 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public GroupAccessToken rotateGroupAccessToken(Object groupIdOrPath, Long tokenId) throws GitLabApiException {
-        Response response = post(Response.Status.OK, (Form)null, "groups", getGroupIdOrPath(groupIdOrPath), "access_tokens", tokenId, "rotate");
+        return rotateGroupAccessToken(groupIdOrPath, tokenId, null);
+    }
+
+
+    /**
+     * Rotate a group access token. Revokes the previous token and creates a new token that expires in one week.
+     *
+     * <pre><code>GitLab Endpoint: POST /groups/:id/access_tokens/:token_id/rotate</code></pre>
+     *
+     * @param groupIdOrPath the group in the form of an Long(ID), String(path), or Group instance
+     * @param tokenId ID of the group access token
+     * @param expiresAt Expiration date of the access token
+     * @return the updated GroupAccessToken instance
+     * @throws GitLabApiException if any exception occurs
+     */
+    public GroupAccessToken rotateGroupAccessToken(Object groupIdOrPath, Long tokenId, Date expiresAt) throws GitLabApiException {
+        GitLabApiForm formData = new GitLabApiForm()
+                .withParam("expires_at", ISO8601.dateOnly(expiresAt));
+
+        Response response = post(Response.Status.OK, formData, "groups", getGroupIdOrPath(groupIdOrPath), "access_tokens", tokenId, "rotate");
         return (response.readEntity(GroupAccessToken.class));
     }
+
 
     /**
      * Revoke a group access token.
