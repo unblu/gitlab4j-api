@@ -551,7 +551,7 @@ public class IssuesApi extends AbstractApi implements Constants {
     }
 
     /**
-     * Updates an existing project issue. This call can also be used to mark an issue as closed.
+     * Updates an existing project issue to change the assignee.
      *
      * <pre><code>GitLab Endpoint: PUT /projects/:id/issues/:issue_iid</code></pre>
      *
@@ -562,18 +562,11 @@ public class IssuesApi extends AbstractApi implements Constants {
      * @throws GitLabApiException if any exception occurs
      */
     public Issue assignIssue(Object projectIdOrPath, Long issueIid, Long assigneeId) throws GitLabApiException {
-
-        if (issueIid == null) {
-            throw new RuntimeException("issue IID cannot be null");
-        }
-
-        GitLabApiForm formData = new GitLabApiForm().withParam("assignee_ids", Collections.singletonList(assigneeId));
-        Response response = put(Response.Status.OK, formData.asMap(), "projects", getProjectIdOrPath(projectIdOrPath), "issues", issueIid);
-        return (response.readEntity(Issue.class));
+        return assignIssue(projectIdOrPath, issueIid, Collections.singletonList(assigneeId));
     }
 
     /**
-     * Updates an existing project issue. This call can also be used to mark an issue as closed.
+     * Updates an existing project issue to change the assignees.
      *
      * <pre><code>GitLab Endpoint: PUT /projects/:id/issues/:issue_iid</code></pre>
      *
@@ -589,9 +582,9 @@ public class IssuesApi extends AbstractApi implements Constants {
             throw new RuntimeException("issue IID cannot be null");
         }
 
-        // replace empty list with an invalid userId (clears the list in gitlab)
+        // replace empty list with an invalid userId (clears the assignees in gitlab)
         if (assigneeIds.isEmpty()) {
-            assigneeIds.add(0L);
+            assigneeIds = Collections.singletonList(0L);
         }
 
         GitLabApiForm formData = new GitLabApiForm().withParam("assignee_ids", assigneeIds);
