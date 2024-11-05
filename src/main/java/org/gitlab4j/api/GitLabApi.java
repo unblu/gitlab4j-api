@@ -26,7 +26,7 @@ import org.gitlab4j.api.utils.SecretString;
  */
 public class GitLabApi implements AutoCloseable {
 
-    private final static Logger LOGGER = Logger.getLogger(GitLabApi.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GitLabApi.class.getName());
 
     /** GitLab4J default per page.  GitLab will ignore anything over 100. */
     public static final int DEFAULT_PER_PAGE = 96;
@@ -36,7 +36,8 @@ public class GitLabApi implements AutoCloseable {
 
     /** Specifies the version of the GitLab API to communicate with. */
     public enum ApiVersion {
-        V3, V4;
+        V3,
+        V4;
 
         public String getApiNamespace() {
             return ("/api/" + name().toLowerCase());
@@ -86,10 +87,11 @@ public class GitLabApi implements AutoCloseable {
     private NotesApi notesApi;
     private NotificationSettingsApi notificationSettingsApi;
     private PackagesApi packagesApi;
+    private PersonalAccessTokenApi personalAccessTokenApi;
     private PipelineApi pipelineApi;
     private ProjectApi projectApi;
     private ProtectedBranchesApi protectedBranchesApi;
-	private ReleaseLinksApi releaseLinksApi;
+    private ReleaseLinksApi releaseLinksApi;
     private ReleasesApi releasesApi;
     private RepositoryApi repositoryApi;
     private RepositoryFileApi repositoryFileApi;
@@ -182,7 +184,9 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(String url, String username, CharSequence password, boolean ignoreCertificateErrors) throws GitLabApiException {
+    public static GitLabApi oauth2Login(
+            String url, String username, CharSequence password, boolean ignoreCertificateErrors)
+            throws GitLabApiException {
         return (GitLabApi.oauth2Login(ApiVersion.V4, url, username, password, null, null, ignoreCertificateErrors));
     }
 
@@ -197,10 +201,12 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(String url, String username, char[] password, boolean ignoreCertificateErrors) throws GitLabApiException {
+    public static GitLabApi oauth2Login(String url, String username, char[] password, boolean ignoreCertificateErrors)
+            throws GitLabApiException {
 
         try (SecretString secretPassword = new SecretString(password)) {
-            return (GitLabApi.oauth2Login(ApiVersion.V4, url, username, secretPassword, null, null, ignoreCertificateErrors));
+            return (GitLabApi.oauth2Login(
+                    ApiVersion.V4, url, username, secretPassword, null, null, ignoreCertificateErrors));
         }
     }
 
@@ -217,9 +223,16 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(String url, String username, CharSequence password, String secretToken,
-            Map<String, Object> clientConfigProperties, boolean ignoreCertificateErrors) throws GitLabApiException {
-        return (GitLabApi.oauth2Login(ApiVersion.V4, url, username, password, secretToken, clientConfigProperties, ignoreCertificateErrors));
+    public static GitLabApi oauth2Login(
+            String url,
+            String username,
+            CharSequence password,
+            String secretToken,
+            Map<String, Object> clientConfigProperties,
+            boolean ignoreCertificateErrors)
+            throws GitLabApiException {
+        return (GitLabApi.oauth2Login(
+                ApiVersion.V4, url, username, password, secretToken, clientConfigProperties, ignoreCertificateErrors));
     }
 
     /**
@@ -235,12 +248,24 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(String url, String username, char[] password, String secretToken,
-            Map<String, Object> clientConfigProperties, boolean ignoreCertificateErrors) throws GitLabApiException {
+    public static GitLabApi oauth2Login(
+            String url,
+            String username,
+            char[] password,
+            String secretToken,
+            Map<String, Object> clientConfigProperties,
+            boolean ignoreCertificateErrors)
+            throws GitLabApiException {
 
         try (SecretString secretPassword = new SecretString(password)) {
-            return (GitLabApi.oauth2Login(ApiVersion.V4, url, username, secretPassword,
-                secretToken, clientConfigProperties, ignoreCertificateErrors));
+            return (GitLabApi.oauth2Login(
+                    ApiVersion.V4,
+                    url,
+                    username,
+                    secretPassword,
+                    secretToken,
+                    clientConfigProperties,
+                    ignoreCertificateErrors));
         }
     }
 
@@ -258,12 +283,25 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(ApiVersion apiVersion, String url, String username, char[] password, String secretToken,
-            Map<String, Object> clientConfigProperties, boolean ignoreCertificateErrors) throws GitLabApiException {
+    public static GitLabApi oauth2Login(
+            ApiVersion apiVersion,
+            String url,
+            String username,
+            char[] password,
+            String secretToken,
+            Map<String, Object> clientConfigProperties,
+            boolean ignoreCertificateErrors)
+            throws GitLabApiException {
 
         try (SecretString secretPassword = new SecretString(password)) {
-            return (GitLabApi.oauth2Login(apiVersion, url, username, secretPassword,
-                secretToken, clientConfigProperties, ignoreCertificateErrors));
+            return (GitLabApi.oauth2Login(
+                    apiVersion,
+                    url,
+                    username,
+                    secretPassword,
+                    secretToken,
+                    clientConfigProperties,
+                    ignoreCertificateErrors));
         }
     }
 
@@ -281,15 +319,22 @@ public class GitLabApi implements AutoCloseable {
      * @return new {@code GitLabApi} instance configured for a user-specific token
      * @throws GitLabApiException GitLabApiException if any exception occurs during execution
      */
-    public static GitLabApi oauth2Login(ApiVersion apiVersion, String url, String username, CharSequence password,
-            String secretToken, Map<String, Object> clientConfigProperties, boolean ignoreCertificateErrors) throws GitLabApiException {
+    public static GitLabApi oauth2Login(
+            ApiVersion apiVersion,
+            String url,
+            String username,
+            CharSequence password,
+            String secretToken,
+            Map<String, Object> clientConfigProperties,
+            boolean ignoreCertificateErrors)
+            throws GitLabApiException {
 
         if (username == null || username.trim().length() == 0) {
             throw new IllegalArgumentException("both username and email cannot be empty or null");
         }
 
         // Create a GitLabApi instance set up to be used to do an OAUTH2 login.
-        GitLabApi gitLabApi = new GitLabApi(apiVersion, url, (String)null);
+        GitLabApi gitLabApi = new GitLabApi(apiVersion, url, (String) null);
         gitLabApi.apiClient.setHostUrlToBaseUrl();
 
         if (ignoreCertificateErrors) {
@@ -304,9 +349,16 @@ public class GitLabApi implements AutoCloseable {
 
         try (Oauth2LoginStreamingOutput stream = new Oauth2LoginStreamingOutput(username, password)) {
 
-            Response response = new Oauth2Api(gitLabApi).post(Response.Status.OK, stream, MediaType.APPLICATION_JSON, "oauth", "token");
+            Response response = new Oauth2Api(gitLabApi)
+                    .post(Response.Status.OK, stream, MediaType.APPLICATION_JSON, "oauth", "token");
             OauthTokenResponse oauthToken = response.readEntity(OauthTokenResponse.class);
-            gitLabApi = new GitLabApi(apiVersion, url, TokenType.OAUTH2_ACCESS, oauthToken.getAccessToken(), secretToken, clientConfigProperties);
+            gitLabApi = new GitLabApi(
+                    apiVersion,
+                    url,
+                    TokenType.OAUTH2_ACCESS,
+                    oauthToken.getAccessToken(),
+                    secretToken,
+                    clientConfigProperties);
             if (ignoreCertificateErrors) {
                 gitLabApi.setIgnoreCertificateErrors(true);
             }
@@ -395,7 +447,12 @@ public class GitLabApi implements AutoCloseable {
      * @param secretToken use this token to validate received payloads
      * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
      */
-    public GitLabApi(ApiVersion apiVersion, String hostUrl, String personalAccessToken, String secretToken, Map<String, Object> clientConfigProperties) {
+    public GitLabApi(
+            ApiVersion apiVersion,
+            String hostUrl,
+            String personalAccessToken,
+            String secretToken,
+            Map<String, Object> clientConfigProperties) {
         this(apiVersion, hostUrl, TokenType.PRIVATE, personalAccessToken, secretToken, clientConfigProperties);
     }
 
@@ -408,11 +465,16 @@ public class GitLabApi implements AutoCloseable {
      * @param secretToken use this token to validate received payloads
      * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
      */
-    public GitLabApi(String hostUrl, TokenType tokenType, String authToken, String secretToken, Map<String, Object> clientConfigProperties) {
+    public GitLabApi(
+            String hostUrl,
+            TokenType tokenType,
+            String authToken,
+            String secretToken,
+            Map<String, Object> clientConfigProperties) {
         this(ApiVersion.V4, hostUrl, tokenType, authToken, secretToken, clientConfigProperties);
     }
 
-   /**
+    /**
      *  Constructs a GitLabApi instance set up to interact with the GitLab server using GitLab API version 4.
      *
      * @param hostUrl the URL of the GitLab server
@@ -420,20 +482,24 @@ public class GitLabApi implements AutoCloseable {
      * @param secretToken use this token to validate received payloads
      * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
      */
-    public GitLabApi(String hostUrl, String personalAccessToken, String secretToken, Map<String, Object> clientConfigProperties) {
+    public GitLabApi(
+            String hostUrl,
+            String personalAccessToken,
+            String secretToken,
+            Map<String, Object> clientConfigProperties) {
         this(ApiVersion.V4, hostUrl, TokenType.PRIVATE, personalAccessToken, secretToken, clientConfigProperties);
     }
 
     /**
-      *  Constructs a GitLabApi instance set up to interact with the GitLab server using GitLab API version 4.
-      *
-      * @param hostUrl the URL of the GitLab server
-      * @param personalAccessToken the private token to use for access to the API
-      * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
-      */
-     public GitLabApi(String hostUrl, String personalAccessToken, Map<String, Object> clientConfigProperties) {
-         this(ApiVersion.V4, hostUrl, TokenType.PRIVATE, personalAccessToken, null, clientConfigProperties);
-     }
+     *  Constructs a GitLabApi instance set up to interact with the GitLab server using GitLab API version 4.
+     *
+     * @param hostUrl the URL of the GitLab server
+     * @param personalAccessToken the private token to use for access to the API
+     * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
+     */
+    public GitLabApi(String hostUrl, String personalAccessToken, Map<String, Object> clientConfigProperties) {
+        this(ApiVersion.V4, hostUrl, TokenType.PRIVATE, personalAccessToken, null, clientConfigProperties);
+    }
 
     /**
      *  Constructs a GitLabApi instance set up to interact with the GitLab server specified by GitLab API version.
@@ -445,7 +511,13 @@ public class GitLabApi implements AutoCloseable {
      * @param secretToken use this token to validate received payloads
      * @param clientConfigProperties Map instance with additional properties for the Jersey client connection
      */
-    public GitLabApi(ApiVersion apiVersion, String hostUrl, TokenType tokenType, String authToken, String secretToken, Map<String, Object> clientConfigProperties) {
+    public GitLabApi(
+            ApiVersion apiVersion,
+            String hostUrl,
+            TokenType tokenType,
+            String authToken,
+            String secretToken,
+            Map<String, Object> clientConfigProperties) {
         this.apiVersion = apiVersion;
         this.gitLabServerUrl = hostUrl;
         this.clientConfigProperties = clientConfigProperties;
@@ -460,8 +532,8 @@ public class GitLabApi implements AutoCloseable {
     public final GitLabApi duplicate() {
 
         Long sudoUserId = this.getSudoAsId();
-        GitLabApi gitLabApi = new GitLabApi(apiVersion, gitLabServerUrl,
-                getTokenType(), getAuthToken(), getSecretToken(), clientConfigProperties);
+        GitLabApi gitLabApi = new GitLabApi(
+                apiVersion, gitLabServerUrl, getTokenType(), getAuthToken(), getSecretToken(), clientConfigProperties);
         if (sudoUserId != null) {
             gitLabApi.apiClient.setSudoAsId(sudoUserId);
         }
@@ -492,7 +564,7 @@ public class GitLabApi implements AutoCloseable {
      * @param readTimeout the per request read timeout in milliseconds, can be null to use default
      */
     public void setRequestTimeout(Integer connectTimeout, Integer readTimeout) {
-	apiClient.setRequestTimeout(connectTimeout, readTimeout);
+        apiClient.setRequestTimeout(connectTimeout, readTimeout);
     }
 
     /**
@@ -503,8 +575,8 @@ public class GitLabApi implements AutoCloseable {
      * @return this GitLabApi instance
      */
     public GitLabApi withRequestTimeout(Integer connectTimeout, Integer readTimeout) {
-	apiClient.setRequestTimeout(connectTimeout, readTimeout);
-	return (this);
+        apiClient.setRequestTimeout(connectTimeout, readTimeout);
+        return (this);
     }
 
     /**
@@ -648,7 +720,8 @@ public class GitLabApi implements AutoCloseable {
      * the end of the log entry. If maxEntitySize is &lt;= 0, entity logging will be disabled
      * @param maskedHeaderNames a list of header names that should have the values masked
      */
-    public void enableRequestResponseLogging(Logger logger, Level level, int maxEntitySize, List<String> maskedHeaderNames) {
+    public void enableRequestResponseLogging(
+            Logger logger, Level level, int maxEntitySize, List<String> maskedHeaderNames) {
         apiClient.enableRequestResponseLogging(logger, level, maxEntitySize, maskedHeaderNames);
     }
 
@@ -800,22 +873,27 @@ public class GitLabApi implements AutoCloseable {
      *
      * @param defaultPageFetchParallel the new default number of threads to use when fetching pages in parallel
      */
-    public void setDefaultPageFetchParallel(boolean defaultPageFetchParallel) { this.defaultPageFetchParallel = defaultPageFetchParallel;}
+    public void setDefaultPageFetchParallel(boolean defaultPageFetchParallel) {
+        this.defaultPageFetchParallel = defaultPageFetchParallel;
+    }
 
     /**
      * Sets the parallel task executor for this instance.
      *
      * @param parallelTaskExecutor the parallel task executor to be used
      */
-    public void setParallelTaskExecutor(ParallelTaskExecutor parallelTaskExecutor) { this.parallelTaskExecutor = parallelTaskExecutor;}
-
+    public void setParallelTaskExecutor(ParallelTaskExecutor parallelTaskExecutor) {
+        this.parallelTaskExecutor = parallelTaskExecutor;
+    }
 
     /**
      * Get the parallel task executor for this instance
      *
      * @return the parallel task executor for this instance if set
      */
-    public ParallelTaskExecutor getParallelTaskExecutor() {return this.parallelTaskExecutor;}
+    public ParallelTaskExecutor getParallelTaskExecutor() {
+        return this.parallelTaskExecutor;
+    }
 
     /**
      * Return the GitLabApiClient associated with this instance. This is used by all the sub API classes
@@ -1040,7 +1118,7 @@ public class GitLabApi implements AutoCloseable {
      *
      * @return the DeployTokensApi instance owned by this GitLabApi instance
      */
-    public DeployTokensApi getDeployTokensApi(){
+    public DeployTokensApi getDeployTokensApi() {
 
         if (deployTokensApi == null) {
             synchronized (this) {
@@ -1161,7 +1239,6 @@ public class GitLabApi implements AutoCloseable {
         }
         return gitLabCiYaml;
     }
-
 
     /**
      * Gets the GroupApi instance owned by this GitLabApi instance. The GroupApi is used
@@ -1309,7 +1386,6 @@ public class GitLabApi implements AutoCloseable {
         return (licenseTemplatesApi);
     }
 
-
     /**
      * Gets the MarkdownApi instance owned by this GitLabApi instance. The MarkdownApi is used
      * to perform all markdown related API calls.
@@ -1440,6 +1516,25 @@ public class GitLabApi implements AutoCloseable {
         }
 
         return (packagesApi);
+    }
+
+    /**
+     * Gets the PersonalAccessTokenApi instance owned by this GitLabApi instance. The PersonalAccessTokenApi is used
+     * to perform all personalAccessToken related API calls.
+     *
+     * @return the PersonalAccessTokenApi instance owned by this GitLabApi instance
+     */
+    public PersonalAccessTokenApi getPersonalAccessTokenApi() {
+
+        if (personalAccessTokenApi == null) {
+            synchronized (this) {
+                if (personalAccessTokenApi == null) {
+                    personalAccessTokenApi = new PersonalAccessTokenApi(this);
+                }
+            }
+        }
+
+        return (personalAccessTokenApi);
     }
 
     /**
@@ -1827,7 +1922,6 @@ public class GitLabApi implements AutoCloseable {
         return metadataApi;
     }
 
-
     /**
      * Create and return an Optional instance associated with a GitLabApiException.
      *
@@ -1837,7 +1931,7 @@ public class GitLabApi implements AutoCloseable {
      */
     protected static final <T> Optional<T> createOptionalFromException(GitLabApiException glae) {
         Optional<T> optional = Optional.empty();
-        optionalExceptionMap.put(System.identityHashCode(optional),  glae);
+        optionalExceptionMap.put(System.identityHashCode(optional), glae);
         return (optional);
     }
 

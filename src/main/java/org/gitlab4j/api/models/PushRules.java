@@ -1,9 +1,9 @@
 package org.gitlab4j.api.models;
 
-import org.gitlab4j.api.utils.JacksonJson;
-
 import java.io.Serializable;
 import java.util.Date;
+
+import org.gitlab4j.api.utils.JacksonJson;
 
 public class PushRules implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -21,6 +21,7 @@ public class PushRules implements Serializable {
     private String fileNameRegex;
     private Integer maxFileSize;
     private Boolean commitCommitterCheck;
+    private Boolean commitCommitterNameCheck;
     private Boolean rejectUnsignedCommits;
 
     public Long getId() {
@@ -69,6 +70,7 @@ public class PushRules implements Serializable {
         this.commitMessageNegativeRegex = commitMessageNegativeRegex;
         return (this);
     }
+
     public String getBranchNameRegex() {
         return branchNameRegex;
     }
@@ -172,6 +174,14 @@ public class PushRules implements Serializable {
         return commitCommitterCheck;
     }
 
+    public Boolean getCommitCommitterNameCheck() {
+        return commitCommitterNameCheck;
+    }
+
+    public void setCommitCommitterNameCheck(Boolean commitCommitterNameCheck) {
+        this.commitCommitterNameCheck = commitCommitterNameCheck;
+    }
+
     public void setCommitCommitterCheck(Boolean commitCommitterCheck) {
         this.commitCommitterCheck = commitCommitterCheck;
     }
@@ -198,4 +208,4 @@ public class PushRules implements Serializable {
     public String toString() {
         return (JacksonJson.toJsonString(this));
     }
- }
+}

@@ -18,13 +18,8 @@ import java.util.stream.Stream;
 
 import jakarta.ws.rs.core.Response;
 
-import org.gitlab4j.api.models.AccessLevel;
-import org.gitlab4j.api.models.AccessRequest;
-import org.gitlab4j.api.models.Group;
-import org.gitlab4j.api.models.GroupFilter;
-import org.gitlab4j.api.models.GroupParams;
-import org.gitlab4j.api.models.Member;
-import org.gitlab4j.api.models.User;
+import org.gitlab4j.api.models.*;
+import org.gitlab4j.api.models.GroupHook;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,13 +42,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Tag("integration")
 @ExtendWith(SetupIntegrationTestExtension.class)
-@org.junit.jupiter.api.Disabled("Integration tests are disabled, see https://github.com/gitlab4j/gitlab4j-api/issues/1165")
+@org.junit.jupiter.api.Disabled(
+        "Integration tests are disabled, see https://github.com/gitlab4j/gitlab4j-api/issues/1165")
 public class TestGroupApi extends AbstractIntegrationTest {
 
     // The following needs to be set to your test repository
     private static final String TEST_GROUP = HelperUtils.getProperty(GROUP_KEY);
     private static final String TEST_GROUP_MEMBER_USERNAME = HelperUtils.getProperty(GROUP_MEMBER_USERNAME_KEY);
-    private static final String TEST_REQUEST_ACCESS_USERNAME = HelperUtils.getProperty(TEST_REQUEST_ACCESS_USERNAME_KEY);
+    private static final String TEST_REQUEST_ACCESS_USERNAME =
+            HelperUtils.getProperty(TEST_REQUEST_ACCESS_USERNAME_KEY);
 
     private static final String AVATAR_FILENAME = "avatar.png";
 
@@ -75,7 +72,7 @@ public class TestGroupApi extends AbstractIntegrationTest {
         if (gitLabApi != null) {
             Optional<Group> group = gitLabApi.getGroupApi().getOptionalGroup(TEST_GROUP);
             if (group.isPresent()) {
-        	testGroup = group.get();
+                testGroup = group.get();
             } else {
                 problems += "Problem fetching test group\n";
             }
@@ -119,7 +116,8 @@ public class TestGroupApi extends AbstractIntegrationTest {
                 } catch (Exception e) {
                     try {
                         gitLabApi.getGroupApi().removeMember(testGroup, userId);
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
                 }
             }
         }
@@ -154,7 +152,11 @@ public class TestGroupApi extends AbstractIntegrationTest {
 
         // Assert
         assertNotNull(members);
-        Boolean found = (members.stream().filter(m -> m.getId().equals(member.getId())).findAny().orElse(null) != null);
+        Boolean found = (members.stream()
+                        .filter(m -> m.getId().equals(member.getId()))
+                        .findAny()
+                        .orElse(null)
+                != null);
         assertTrue(found);
 
         // Act
@@ -183,7 +185,11 @@ public class TestGroupApi extends AbstractIntegrationTest {
 
         // Assert
         assertNotNull(members);
-        Boolean found = (members.stream().filter(m -> m.getId().equals(member.getId())).findAny().orElse(null) != null);
+        Boolean found = (members.stream()
+                        .filter(m -> m.getId().equals(member.getId()))
+                        .findAny()
+                        .orElse(null)
+                != null);
         assertTrue(found);
 
         gitLabApi.getGroupApi().removeMember(testGroup.getId(), testUser.getId());
@@ -200,7 +206,9 @@ public class TestGroupApi extends AbstractIntegrationTest {
         gitLabApi.getGroupApi().setCustomAttribute(TEST_GROUP, "test_key", "test_value");
 
         GroupFilter wrongKeyFilter = new GroupFilter().withCustomAttributeFilter("other_key", "test_value");
-        GroupFilter multipleFilter = new GroupFilter().withCustomAttributeFilter("test_key", "test_value").withCustomAttributeFilter("other_key", "test_value");
+        GroupFilter multipleFilter = new GroupFilter()
+                .withCustomAttributeFilter("test_key", "test_value")
+                .withCustomAttributeFilter("other_key", "test_value");
         GroupFilter matchingFilter = new GroupFilter().withCustomAttributeFilter("test_key", "test_value");
 
         assertEquals(1, gitLabApi.getGroupApi().getGroups(matchingFilter).size());
@@ -219,13 +227,15 @@ public class TestGroupApi extends AbstractIntegrationTest {
         optional = gitLabApi.getGroupApi().getOptionalGroup(12345L);
         assertNotNull(optional);
         assertFalse(optional.isPresent());
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), GitLabApi.getOptionalException(optional).getHttpStatus());
+        assertEquals(
+                Response.Status.NOT_FOUND.getStatusCode(),
+                GitLabApi.getOptionalException(optional).getHttpStatus());
     }
 
     @Test
     @Disabled("Required Gitlab version not less then 14.0")
     public void testGetAvatar() throws GitLabApiException, IOException {
-        
+
         assumeTrue(testGroup != null);
 
         File avatarFile = new File("src/test/resources/org/gitlab4j/api", AVATAR_FILENAME);
@@ -240,7 +250,6 @@ public class TestGroupApi extends AbstractIntegrationTest {
         assertTrue(target.toFile().length() > 0);
         Files.delete(target);
     }
-
 
     @Test
     public void testRequestAccess() throws GitLabApiException {
@@ -266,7 +275,8 @@ public class TestGroupApi extends AbstractIntegrationTest {
             Stream<AccessRequest> requests = gitLabApi.getGroupApi().getAccessRequestsStream(testGroup);
             assertTrue(requests.anyMatch(r -> r.getId() == userId));
 
-            AccessRequest accessRequest = gitLabApi.getGroupApi().approveAccessRequest(testGroup, user.getId(), AccessLevel.DEVELOPER);
+            AccessRequest accessRequest =
+                    gitLabApi.getGroupApi().approveAccessRequest(testGroup, user.getId(), AccessLevel.DEVELOPER);
             assertNotNull(accessRequest);
             assertEquals(user.getId(), accessRequest.getId());
             assertEquals(AccessLevel.DEVELOPER, accessRequest.getAccessLevel());
@@ -283,7 +293,8 @@ public class TestGroupApi extends AbstractIntegrationTest {
                 } else {
                     gitLabApi.getGroupApi().denyAccessRequest(testGroup, userId);
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
     }
 
@@ -341,5 +352,42 @@ public class TestGroupApi extends AbstractIntegrationTest {
         assertTrue(optional.isPresent());
         assertEquals(testGroup.getId(), optional.get().getId());
         assertEquals(description, optional.get().getDescription());
+    }
+
+    @Test
+    public void addGroupHook() throws GitLabApiException {
+        // Given
+        GroupHookParams groupHookParams = new GroupHookParams();
+        groupHookParams
+                .setUrl("")
+                .setName("My Webhook")
+                .setDescription("")
+                .setBranchFilterStrategy("")
+                .setConfidentialIssuesEvents(true)
+                .setIssuesEvents(true)
+                .setConfidentialNoteEvents(true)
+                .setEnableSslVerification(true)
+                .setFeatureFlagEvents(true)
+                .setPushEvents(true)
+                .setJobEvents(true)
+                .setToken("token")
+                .setSubgroupEvents(true)
+                .setWikiPageEvents(true)
+                .setTagPushEvents(true)
+                .setReleasesEvents(true)
+                .setMemberEvents(true)
+                .setResourceAccessTokenEvents(true)
+                .setDeploymentEvents(true)
+                .setPipelineEvents(true)
+                .setNoteEvents(true)
+                .setMergeRequestsEvents(true)
+                .setPushEventsBranchFilter("wildcard")
+                .setCustomWebhookTemplate("{\"event\":\"{{object_kind}}\"}");
+
+        // When
+        GroupHook createdWebhook = gitLabApi.getGroupApi().addWebhook(testGroup.getId(), groupHookParams);
+
+        // Then
+        assertEquals("My Webhook", createdWebhook.getName());
     }
 }

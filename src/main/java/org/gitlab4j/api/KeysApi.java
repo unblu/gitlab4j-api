@@ -1,15 +1,16 @@
 package org.gitlab4j.api;
 
-import org.gitlab4j.api.models.Key;
+import java.util.Collections;
 
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import java.util.Collections;
+
+import org.gitlab4j.api.models.Key;
 
 /**
  * See:
- * https://docs.gitlab.com/ee/api/keys.html#get-user-by-fingerprint-of-ssh-key
+ * <a href="https://docs.gitlab.com/ee/api/keys.html">GitLab Key API Documentaion</a>
  */
 public class KeysApi extends AbstractApi {
     public KeysApi(GitLabApi gitLabApi) {
@@ -25,6 +26,20 @@ public class KeysApi extends AbstractApi {
         MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
         queryParams.put("fingerprint", Collections.singletonList(fingerprint));
         Response response = get(Response.Status.OK, queryParams, "keys");
+        return response.readEntity(Key.class);
+    }
+
+    /**
+     * Get a single key by id.
+     *
+     * <pre><code>GitLab Endpoint: GET /keys/:id</code></pre>
+     *
+     * @param keyId the IID of the key to get
+     * @return a Key instance
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Key getKey(String keyId) throws GitLabApiException {
+        Response response = get(Response.Status.OK, null, "keys", keyId);
         return response.readEntity(Key.class);
     }
 }

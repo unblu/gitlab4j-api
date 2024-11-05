@@ -1,6 +1,5 @@
 package org.gitlab4j.api;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -73,7 +71,13 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
      * @param pathArgs HTTP path arguments
      * @throws GitLabApiException if any error occurs
      */
-    public Pager(AbstractApi api, Class<T> type, int itemsPerPage, MultivaluedMap<String, String> queryParams, Object... pathArgs) throws GitLabApiException {
+    public Pager(
+            AbstractApi api,
+            Class<T> type,
+            int itemsPerPage,
+            MultivaluedMap<String, String> queryParams,
+            Object... pathArgs)
+            throws GitLabApiException {
         this.api = api;
         javaType = mapper.getTypeFactory().constructCollectionType(List.class, type);
 
@@ -83,15 +87,14 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
         // Make sure the per_page parameter is present
         if (queryParams == null) {
-            queryParams = new GitLabApiForm().withParam(PER_PAGE_PARAM, itemsPerPage).asMap();
+            queryParams =
+                    new GitLabApiForm().withParam(PER_PAGE_PARAM, itemsPerPage).asMap();
         } else {
             queryParams.remove(PER_PAGE_PARAM);
             queryParams.add(PER_PAGE_PARAM, Integer.toString(itemsPerPage));
         }
         this.queryParams = queryParams;
         this.pathArgs = pathArgs;
-
-
 
         Page page = new Page(1);
         pages.put(page.getPageNumber(), page);
@@ -102,12 +105,10 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             throw new GitLabApiException("Invalid response from from GitLab server");
         }
 
-
-
-
         this.itemsPerPage = getIntHeaderValue(response, PER_PAGE);
 
-        // Some API endpoints do not return the "X-Per-Page" header when there is only 1 page, check for that condition and act accordingly
+        // Some API endpoints do not return the "X-Per-Page" header when there is only 1 page, check for that condition
+        // and act accordingly
         if (this.itemsPerPage == -1) {
             this.itemsPerPage = itemsPerPage;
             totalPages = 1;
@@ -131,7 +132,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
                 kaminariNextPage = 2;
             }
         }
-     }
+    }
 
     /**
      * Get the specified header value from the Response instance.
@@ -387,7 +388,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         }
 
         List<Callable<List<T>>> tasks = new ArrayList<>();
-        for(int i=1; i<=totalPages; i++) {
+        for (int i = 1; i <= totalPages; i++) {
             final int pageNumber = i;
             tasks.add(() -> page(pageNumber));
         }
@@ -407,7 +408,6 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
     private List<T> fetchAllSynchronously() {
         List<T> allItems = new ArrayList<>(Math.max(totalItems, 0));
         currentPage = 0;
-
 
         // Iterate through the pages and append each page of items to the list
         while (hasNext()) {
@@ -475,7 +475,6 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
 
         throw new IllegalStateException("Stream already issued");
     }
-
 
     private class Page {
         private Integer pageNumber;

@@ -1,8 +1,8 @@
 package org.gitlab4j.api.models;
 
-import org.gitlab4j.api.utils.JacksonJson;
-
 import java.io.Serializable;
+
+import org.gitlab4j.api.utils.JacksonJson;
 
 public class AbstractMinimalEpic<E extends AbstractMinimalEpic<E>> implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -13,6 +13,7 @@ public class AbstractMinimalEpic<E extends AbstractMinimalEpic<E>> implements Se
     private Long parentId;
     private String title;
     private String reference;
+    private String url;
 
     public Long getId() {
         return id;
@@ -66,6 +67,14 @@ public class AbstractMinimalEpic<E extends AbstractMinimalEpic<E>> implements Se
 
     public void setReference(String reference) {
         this.reference = reference;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String toString() {
