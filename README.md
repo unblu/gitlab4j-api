@@ -1,38 +1,15 @@
 # GitLab4J&trade; API (gitlab4j-api)<br />Java Client Library for the GitLab REST API
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.gitlab4j/gitlab4j-api.svg)](http://mvnrepository.com/artifact/org.gitlab4j/gitlab4j-api)
-[![Build Status](https://github.com/gitlab4j/gitlab4j-api/actions/workflows/ci-build.yml/badge.svg?branch=6.x)](https://github.com/gitlab4j/gitlab4j-api/actions/workflows/ci-build.yml)
+[![Build Status](https://github.com/gitlab4j/gitlab4j-api/actions/workflows/ci-build.yml/badge.svg?branch=main)](https://github.com/gitlab4j/gitlab4j-api/actions/workflows/ci-build.yml)
 [![javadoc.io](https://javadoc.io/badge2/org.gitlab4j/gitlab4j-api/javadoc.io.svg)](https://javadoc.io/doc/org.gitlab4j/gitlab4j-api)
 
 GitLab4J&trade; API (gitlab4j-api) provides a full featured and easy to consume Java library for working with GitLab repositories via the GitLab REST API.  Additionally, full support for working with GitLab webhooks and system hooks is also provided.
 
 ---
-## Table of Contents
-* [GitLab Server Version Support](#gitLab-server-version-support)<br/>
-* [Using GitLab4J-API](#using-gitlab4j-api)<br/>
-  * [Java 11 Requirement](#java-11-requirement)<br/>
-  * [Javadocs](#javadocs)<br/>
-  * [Project Set Up](#project-set-up)<br/>
-  * [Usage Examples](#usage-examples)<br/>
-  * [Setting Request Timeouts](#setting-request-timeouts)<br/>
-  * [Connecting Through a Proxy Server](#connecting-through-a-proxy-server)<br/>
-  * [GitLab API V3 and V4 Support](#gitLab-api-v3-and-v4-support)<br/>
-  * [Logging of API Requests and Responses](#logging-of-api-requests-and-responses)<br/>
-  * [Results Paging](#results-paging)<br/>
-  * [Java 8 Stream Support](#java-8-stream-support)<br/>
-    * [Eager evaluation example usage](#eager-evaluation-example-usage)<br/>
-    * [Lazy evaluation example usage](#lazy%20evaluation-example-usage)<br/>
-  * [Java 8 Optional&lt;T&gt; Support](#java-8-optional-support)<br/>
-  * [Issue Time Estimates](#issue-time-estimates)<br/>
-* [Making API Calls](#making-api-calls)<br/>
-  * [Available Sub APIs](#available-sub-apis)
-
----
 ## GitLab Server Version Support
 
-GitLab4J-API supports version 11.0+ of GitLab Community Edition [(gitlab-ce)](https://gitlab.com/gitlab-org/gitlab-ce/) and GitLab Enterprise Edition [(gitlab-ee)](https://gitlab.com/gitlab-org/gitlab-ee/). 
-
-GitLab released GitLab Version 11.0 in June of 2018 which included many major changes to GitLab.  If you are using GitLab server earlier than version 11.0, it is highly recommended that you either update your GitLab install or use a version of this library that was released around the same time as the version of GitLab you are using. 
+GitLab4J-API supports both GitLab Community Edition [(gitlab-ce)](https://gitlab.com/gitlab-org/gitlab-ce/) and GitLab Enterprise Edition [(gitlab-ee)](https://gitlab.com/gitlab-org/gitlab-ee/).
 
 **NOTICE**:  
 As of GitLab 11.0 support for the GitLab API v3 has been removed from the GitLab server (see https://about.gitlab.com/2018/06/01/api-v3-removal-impending/). Support for GitLab API v3 will be removed from this library sometime in 2019. If you are utilizing the v3 support, please update your code to use GitLab API v4.
@@ -49,15 +26,14 @@ Javadocs are available here: [![javadoc.io](https://javadoc.io/badge2/org.gitlab
 
 ### **Project Set Up**
 To utilize GitLab4J&trade; API in your Java project, simply add the following dependency to your project's build file:<br /> 
+
 **Gradle: build.gradle**
 ```java
 dependencies {
     ...
-    compile group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.0.0-rc.6'
+    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.0.0-rc.6'
 }
 ```
-
-**NOTE:** Pulling dependencies may fail when using Gradle prior to 4.5. See [Gradle issue 3065](https://github.com/gradle/gradle/issues/3065#issuecomment-364092456)
 
 **Maven: pom.xml**
 ```xml
@@ -103,7 +79,7 @@ repositories {
 
 dependencies {
     // ...
-    implementation 'com.github.gitlab4j:gitlab4j-api:6.x-SNAPSHOT'
+    implementation 'com.github.gitlab4j:gitlab4j-api:main-SNAPSHOT'
     // ...
 }
 ```
@@ -122,7 +98,7 @@ dependencies {
   <dependency>
     <groupId>com.github.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>6.x-SNAPSHOT</version>
+    <version>main-SNAPSHOT</version>
   </dependency>
   <!-- ... -->
 </dependencies>
@@ -133,17 +109,17 @@ dependencies {
 You just need to declare the dependency like this, instead of using the maven coordinates:
 
 ```java
-//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/6.x#:SNAPSHOT
+//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/main#:SNAPSHOT
 ```
 
 **Using a specific commit**
 
-Version `6.x-SNAPSHOT` indicates that you would like to get the latest of the `main` branch.
+Version `main-SNAPSHOT` indicates that you would like to get the latest of the `main` branch.
 You can also point to a specific commit:
 
 ```gradle
 dependencies {
-    implementation 'com.github.gitlab4j:gitlab4j-api:b6148593a3'
+    implementation 'com.github.gitlab4j:gitlab4j-api:6561c93aaf'
 }
 ```
 
@@ -151,12 +127,12 @@ dependencies {
 <dependency>
     <groupId>com.github.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>b6148593a3</version>
+    <version>6561c93aaf</version>
 </dependency>
 ```
 
 ```java
-//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/b6148593a3405cc60968bd247cd7910aae9375e2
+//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/6561c93aafa6bf35cb9bad0617127a0c249a8f9f
 ```
 
 ---
