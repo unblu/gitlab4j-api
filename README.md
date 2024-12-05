@@ -31,7 +31,7 @@ To utilize GitLab4J&trade; API in your Java project, simply add the following de
 ```java
 dependencies {
     ...
-    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.0.0-rc.6'
+    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.0.0-rc.7'
 }
 ```
 
@@ -40,7 +40,7 @@ dependencies {
 <dependency>
     <groupId>org.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>6.0.0-rc.6</version>
+    <version>6.0.0-rc.7</version>
 </dependency>
 ```
 
@@ -51,7 +51,7 @@ dependencies {
  Just add this line at the top of your script:
 
 ```java
-//DEPS org.gitlab4j:gitlab4j-api:6.0.0-rc.6
+//DEPS org.gitlab4j:gitlab4j-api:6.0.0-rc.7
 ```
 
 **Ivy and SBT**<br/>
@@ -119,7 +119,7 @@ You can also point to a specific commit:
 
 ```gradle
 dependencies {
-    implementation 'com.github.gitlab4j:gitlab4j-api:6561c93aaf'
+    implementation 'com.github.gitlab4j:gitlab4j-api:7dfec10189'
 }
 ```
 
@@ -127,12 +127,36 @@ dependencies {
 <dependency>
     <groupId>com.github.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>6561c93aaf</version>
+    <version>7dfec10189</version>
 </dependency>
 ```
 
 ```java
-//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/6561c93aafa6bf35cb9bad0617127a0c249a8f9f
+//DEPS https://github.com/gitlab4j/gitlab4j-api/tree/7dfec10189cdcb11e34fc9ead984abcd6316194a
+```
+
+---
+
+### **Models jar**
+
+For some usages, the HTTP layer based on Jersey can't be used.
+Those projects might want to use the Jackson-based model classes, and implement the REST call themself.
+
+**Gradle: build.gradle**
+```java
+dependencies {
+    ...
+    implementation 'org.gitlab4j:gitlab4j-models:6.0.0-rc.7'
+}
+```
+
+**Maven: pom.xml**
+```xml
+<dependency>
+    <groupId>org.gitlab4j</groupId>
+    <artifactId>gitlab4j-models</artifactId>
+    <version>6.0.0-rc.7</version>
+</dependency>
 ```
 
 ---
