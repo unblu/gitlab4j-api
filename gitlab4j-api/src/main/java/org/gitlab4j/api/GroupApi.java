@@ -637,7 +637,7 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public Group createGroup(GroupParams params) throws GitLabApiException {
-        Response response = post(Response.Status.CREATED, params.getForm(true), "groups");
+        Response response = post(Response.Status.CREATED, new GitLabApiForm(params.getForm(true)), "groups");
         return (response.readEntity(Group.class));
     }
 
@@ -652,8 +652,11 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException at any exception
      */
     public Group updateGroup(Object groupIdOrPath, GroupParams params) throws GitLabApiException {
-        Response response =
-                putWithFormData(Response.Status.OK, params.getForm(false), "groups", getGroupIdOrPath(groupIdOrPath));
+        Response response = putWithFormData(
+                Response.Status.OK,
+                new GitLabApiForm(params.getForm(false)),
+                "groups",
+                getGroupIdOrPath(groupIdOrPath));
         return (response.readEntity(Group.class));
     }
 
@@ -2456,7 +2459,11 @@ public class GroupApi extends AbstractApi {
      */
     public GroupHook addWebhook(Object groupIdOrPath, GroupHookParams groupHookParams) throws GitLabApiException {
         Response response = post(
-                Response.Status.CREATED, groupHookParams.getForm(), "groups", getGroupIdOrPath(groupIdOrPath), "hooks");
+                Response.Status.CREATED,
+                new GitLabApiForm(groupHookParams.getForm()),
+                "groups",
+                getGroupIdOrPath(groupIdOrPath),
+                "hooks");
         return (response.readEntity(GroupHook.class));
     }
 
