@@ -394,7 +394,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
         while (!allPagesFetched) {
             List<Callable<List<T>>> tasks = new ArrayList<>();
 
-            while(tasks.size() < 100) {
+            while (tasks.size() < 100) {
                 final int pageNumber = taskNr++;
                 tasks.add(() -> page(pageNumber));
             }
