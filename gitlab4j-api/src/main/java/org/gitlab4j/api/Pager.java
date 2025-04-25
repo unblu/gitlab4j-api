@@ -388,13 +388,18 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             throw new IllegalStateException("no parallel task executor set, cannot fetch pages in parallel");
         }
 
+        int maxTasks = taskExecutor.getParallelCount();
+        if (totalPages != -1) {
+            maxTasks = Math.min(totalPages, taskExecutor.getParallelCount());
+        }
+
         int taskNr = 1;
         boolean allPagesFetched = false;
 
         while (!allPagesFetched) {
-            List<Callable<List<T>>> tasks = new ArrayList<>();
+            List<Callable<List<T>>> tasks = new ArrayList<>(maxTasks);
 
-            while (tasks.size() < 100) {
+            while (tasks.size() < maxTasks) {
                 final int pageNumber = taskNr++;
                 tasks.add(() -> page(pageNumber));
             }
@@ -403,9 +408,9 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
                 for (List<T> items : results) {
                     if (items.isEmpty()) {
                         allPagesFetched = true;
-                        break;
                     } else {
                         allItems.addAll(items);
+                        allPagesFetched = items.size() < itemsPerPage;
                     }
                 }
             } catch (GitLabApiException ge) {
