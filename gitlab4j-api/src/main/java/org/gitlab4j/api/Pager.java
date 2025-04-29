@@ -300,7 +300,7 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             currentPage = 1;
         }
 
-        if (pageNumber > totalPages && pageNumber > kaminariNextPage) {
+        if (pageNumber > totalPages && pageNumber > kaminariNextPage && !api.gitLabApi.isDefaultPageFetchParallel()) {
             throw new NoSuchElementException();
         } else if (pageNumber < 1) {
             throw new NoSuchElementException();
@@ -388,22 +388,39 @@ public class Pager<T> implements Iterator<List<T>>, Constants {
             throw new IllegalStateException("no parallel task executor set, cannot fetch pages in parallel");
         }
 
-        List<Callable<List<T>>> tasks = new ArrayList<>();
-        for (int i = 1; i <= totalPages; i++) {
-            final int pageNumber = i;
-            tasks.add(() -> page(pageNumber));
+        int maxTasks = taskExecutor.getParallelCount();
+        if (totalPages != -1) {
+            maxTasks = Math.min(totalPages, taskExecutor.getParallelCount());
         }
-        try {
-            List<List<T>> results = taskExecutor.execute(tasks);
-            for (List<T> items : results) {
-                allItems.addAll(items);
+
+        int taskNr = 1;
+        boolean allPagesFetched = false;
+
+        while (!allPagesFetched) {
+            List<Callable<List<T>>> tasks = new ArrayList<>(maxTasks);
+
+            while (tasks.size() < maxTasks) {
+                final int pageNumber = taskNr++;
+                tasks.add(() -> page(pageNumber));
             }
-            return allItems;
-        } catch (GitLabApiException ge) {
-            throw ge;
-        } catch (Exception e) {
-            throw new GitLabApiException(e);
+            try {
+                List<List<T>> results = taskExecutor.execute(tasks);
+                for (List<T> items : results) {
+                    if (items.isEmpty()) {
+                        allPagesFetched = true;
+                    } else {
+                        allItems.addAll(items);
+                        allPagesFetched = items.size() < itemsPerPage;
+                    }
+                }
+            } catch (GitLabApiException ge) {
+                throw ge;
+            } catch (Exception e) {
+                throw new GitLabApiException(e);
+            }
         }
+
+        return allItems;
     }
 
     private List<T> fetchAllSynchronously() {
