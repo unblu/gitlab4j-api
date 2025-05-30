@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 
 import org.gitlab4j.api.models.Note;
-import org.gitlab4j.api.utils.ISO8601;
+import org.gitlab4j.models.utils.ISO8601;
 
 public class NotesApi extends AbstractApi {
 
@@ -230,10 +230,8 @@ public class NotesApi extends AbstractApi {
             throw new RuntimeException("noteId cannot be null");
         }
 
-        Response.Status expectedStatus =
-                (isApiVersion(GitLabApi.ApiVersion.V3) ? Response.Status.OK : Response.Status.NO_CONTENT);
         delete(
-                expectedStatus,
+                Response.Status.NO_CONTENT,
                 getDefaultPerPageParam(),
                 "projects",
                 getProjectIdOrPath(projectIdOrPath),
@@ -522,10 +520,8 @@ public class NotesApi extends AbstractApi {
             throw new RuntimeException("noteId cannot be null");
         }
 
-        Response.Status expectedStatus =
-                (isApiVersion(GitLabApi.ApiVersion.V3) ? Response.Status.OK : Response.Status.NO_CONTENT);
         delete(
-                expectedStatus,
+                Response.Status.NO_CONTENT,
                 null,
                 "projects",
                 getProjectIdOrPath(projectIdOrPath),

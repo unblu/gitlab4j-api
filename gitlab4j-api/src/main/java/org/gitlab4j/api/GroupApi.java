@@ -15,7 +15,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
-import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.AccessRequest;
 import org.gitlab4j.api.models.AuditEvent;
@@ -687,7 +686,7 @@ public class GroupApi extends AbstractApi {
                 .withParam("visibility", group.getVisibility())
                 .withParam("lfs_enabled", group.getLfsEnabled())
                 .withParam("request_access_enabled", group.getRequestAccessEnabled())
-                .withParam("parent_id", isApiVersion(ApiVersion.V3) ? null : group.getParentId());
+                .withParam("parent_id", group.getParentId());
         Response response = post(Response.Status.CREATED, formData, "groups");
         return (response.readEntity(Group.class));
     }
@@ -724,7 +723,7 @@ public class GroupApi extends AbstractApi {
                 .withParam("visibility", visibility)
                 .withParam("lfs_enabled", lfsEnabled)
                 .withParam("request_access_enabled", requestAccessEnabled)
-                .withParam("parent_id", isApiVersion(ApiVersion.V3) ? null : parentId);
+                .withParam("parent_id", parentId);
         Response response = post(Response.Status.CREATED, formData, "groups");
         return (response.readEntity(Group.class));
     }
@@ -746,7 +745,7 @@ public class GroupApi extends AbstractApi {
                 .withParam("visibility", group.getVisibility())
                 .withParam("lfs_enabled", group.getLfsEnabled())
                 .withParam("request_access_enabled", group.getRequestAccessEnabled())
-                .withParam("parent_id", isApiVersion(ApiVersion.V3) ? null : group.getParentId());
+                .withParam("parent_id", group.getParentId());
         Response response = put(Response.Status.OK, formData.asMap(), "groups", group.getId());
         return (response.readEntity(Group.class));
     }
@@ -785,7 +784,7 @@ public class GroupApi extends AbstractApi {
                 .withParam("visibility", visibility)
                 .withParam("lfs_enabled", lfsEnabled)
                 .withParam("request_access_enabled", requestAccessEnabled)
-                .withParam("parent_id", isApiVersion(ApiVersion.V3) ? null : parentId);
+                .withParam("parent_id", parentId);
         Response response = put(Response.Status.OK, formData.asMap(), "groups", getGroupIdOrPath(groupIdOrPath));
         return (response.readEntity(Group.class));
     }
@@ -899,9 +898,7 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public void deleteGroup(Object groupIdOrPath) throws GitLabApiException {
-        Response.Status expectedStatus =
-                (isApiVersion(ApiVersion.V3) ? Response.Status.OK : Response.Status.NO_CONTENT);
-        delete(expectedStatus, null, "groups", getGroupIdOrPath(groupIdOrPath));
+        delete(Response.Status.NO_CONTENT, null, "groups", getGroupIdOrPath(groupIdOrPath));
     }
 
     /**
@@ -1330,9 +1327,7 @@ public class GroupApi extends AbstractApi {
      * @throws GitLabApiException if any exception occurs
      */
     public void removeMember(Object groupIdOrPath, Long userId) throws GitLabApiException {
-        Response.Status expectedStatus =
-                (isApiVersion(ApiVersion.V3) ? Response.Status.OK : Response.Status.NO_CONTENT);
-        delete(expectedStatus, null, "groups", getGroupIdOrPath(groupIdOrPath), "members", userId);
+        delete(Response.Status.NO_CONTENT, null, "groups", getGroupIdOrPath(groupIdOrPath), "members", userId);
     }
 
     /**
@@ -2261,8 +2256,23 @@ public class GroupApi extends AbstractApi {
      * @param groupIdOrPath the group in the form of an Long(ID), String(path), or Group instance, required
      * @param key the key for the custom attribute, required
      * @return an Optional instance with the value for a single custom attribute for the specified group
+     * @deprecated use {@link #getOptionalCustomAttribute(Object, String)} instead
      */
+    @Deprecated
     public Optional<CustomAttribute> geOptionalCustomAttribute(final Object groupIdOrPath, final String key) {
+        return getOptionalCustomAttribute(groupIdOrPath, key);
+    }
+
+    /**
+     * Get an Optional instance with the value for a single custom attribute for the specified group.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/custom_attributes/:key</code></pre>
+     *
+     * @param groupIdOrPath the group in the form of an Long(ID), String(path), or Group instance, required
+     * @param key the key for the custom attribute, required
+     * @return an Optional instance with the value for a single custom attribute for the specified group
+     */
+    public Optional<CustomAttribute> getOptionalCustomAttribute(final Object groupIdOrPath, final String key) {
         try {
             return (Optional.ofNullable(getCustomAttribute(groupIdOrPath, key)));
         } catch (GitLabApiException glae) {
