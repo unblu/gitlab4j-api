@@ -15,12 +15,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509ExtendedTrustManager;
+import javax.net.ssl.*;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -42,12 +37,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.BodyPart;
-import org.glassfish.jersey.media.multipart.Boundary;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.*;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
@@ -73,8 +63,6 @@ public class GitLabApiClient implements AutoCloseable {
     private SSLContext openSslContext;
     private HostnameVerifier openHostnameVerifier;
     private Long sudoAsId;
-    private Integer connectTimeout;
-    private Integer readTimeout;
     private String userAgentHeader;
 
     /**
@@ -261,6 +249,7 @@ public class GitLabApiClient implements AutoCloseable {
         // to use the features and services explicitly configured by gitlab4j
         clientConfig.property(ClientProperties.FEATURE_AUTO_DISCOVERY_DISABLE, true);
         clientConfig.property(ClientProperties.METAINF_SERVICES_LOOKUP_DISABLE, true);
+        clientConfig.property(ClientProperties.FOLLOW_REDIRECTS, true);
 
         clientConfig.register(JacksonJson.class);
         clientConfig.register(JacksonFeature.class);
@@ -306,8 +295,13 @@ public class GitLabApiClient implements AutoCloseable {
      * @param readTimeout the per request read timeout in milliseconds, can be null to use default
      */
     void setRequestTimeout(Integer connectTimeout, Integer readTimeout) {
-        this.connectTimeout = connectTimeout;
-        this.readTimeout = readTimeout;
+        clientConfig.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout);
+        clientConfig.property(ClientProperties.READ_TIMEOUT, readTimeout);
+
+        // Recreate the Client instance if already created.
+        if (apiClient != null) {
+            createApiClient();
+        }
     }
 
     /**
@@ -857,7 +851,7 @@ public class GitLabApiClient implements AutoCloseable {
             createApiClient();
         }
 
-        WebTarget target = apiClient.target(url.toExternalForm()).property(ClientProperties.FOLLOW_REDIRECTS, true);
+        WebTarget target = apiClient.target(url.toExternalForm());
         if (queryParams != null) {
             for (Map.Entry<String, List<String>> param : queryParams.entrySet()) {
                 target = target.queryParam(param.getKey(), param.getValue().toArray());
@@ -878,16 +872,6 @@ public class GitLabApiClient implements AutoCloseable {
 
         // If sudo as ID is set add the Sudo header
         if (sudoAsId != null && sudoAsId.intValue() > 0) builder = builder.header(SUDO_HEADER, sudoAsId);
-
-        // Set the per request connect timeout
-        if (connectTimeout != null) {
-            builder.property(ClientProperties.CONNECT_TIMEOUT, connectTimeout);
-        }
-
-        // Set the per request read timeout
-        if (readTimeout != null) {
-            builder.property(ClientProperties.READ_TIMEOUT, readTimeout);
-        }
 
         return (builder);
     }

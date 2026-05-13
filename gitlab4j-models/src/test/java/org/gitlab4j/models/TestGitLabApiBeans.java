@@ -112,6 +112,12 @@ public class TestGitLabApiBeans {
     }
 
     @Test
+    public void testCreateRunnerResponse() throws Exception {
+        CreateRunnerResponse r = unmarshalResource(CreateRunnerResponse.class, "created-runner-response.json");
+        assertTrue(compareJson(r, "created-runner-response.json"));
+    }
+
+    @Test
     public void testCreatedChildEpic() throws Exception {
         CreatedChildEpic childEpic = unmarshalResource(CreatedChildEpic.class, "created-child-epic.json");
         assertTrue(compareJson(childEpic, "created-child-epic.json"));
@@ -405,6 +411,13 @@ public class TestGitLabApiBeans {
     }
 
     @Test
+    public void testPipelineTestReportSummary() throws Exception {
+        TestReportSummary testReportSummary =
+                unmarshalResource(TestReportSummary.class, "pipeline-test-report-summary.json");
+        assertTrue(compareJson(testReportSummary, "pipeline-test-report-summary.json"));
+    }
+
+    @Test
     public void testPipelineVariables() throws Exception {
         List<Variable> variables = unmarshalResourceList(Variable.class, "pipeline-variables.json");
         assertTrue(compareJson(variables, "pipeline-variables.json"));
@@ -484,6 +497,18 @@ public class TestGitLabApiBeans {
     }
 
     @Test
+    public void testProjectTemplates() throws Exception {
+        List<ProjectTemplate> projectTemplates = unmarshalResourceList(ProjectTemplate.class, "project-templates.json");
+        assertTrue(compareJson(projectTemplates, "project-templates.json"));
+    }
+
+    @Test
+    public void testProjectTemplate() throws Exception {
+        ProjectTemplateDetail projectTemplate = unmarshalResource(ProjectTemplateDetail.class, "project-template.json");
+        assertTrue(compareJson(projectTemplate, "project-template.json"));
+    }
+
+    @Test
     public void testProtectedBranch() throws Exception {
         ProtectedBranch protectedBranch = unmarshalResource(ProtectedBranch.class, "protected-branch.json");
         assertTrue(compareJson(protectedBranch, "protected-branch.json"));
@@ -499,6 +524,12 @@ public class TestGitLabApiBeans {
     public void testPushRule() throws Exception {
         PushRules pushRule = unmarshalResource(PushRules.class, "push-rule.json");
         assertTrue(compareJson(pushRule, "push-rule.json"));
+    }
+
+    @Test
+    public void testPullMirror() throws Exception {
+        PullMirror value = unmarshalResource(PullMirror.class, "pull-mirror.json");
+        assertTrue(compareJson(value, "pull-mirror.json"));
     }
 
     @Test
@@ -788,5 +819,12 @@ public class TestGitLabApiBeans {
     public void testWebhook() throws Exception {
         GroupHook groupHook = unmarshalResource(GroupHook.class, "group-hook.json");
         assertTrue(compareJson(groupHook, "group-hook.json"));
+    }
+
+    @Test
+    public void testErrorTrackingClientKey() throws Exception {
+        ErrorTrackingClientKey errorTrackingClientKey =
+                unmarshalResource(ErrorTrackingClientKey.class, "error-tracking-client-key.json");
+        assertTrue(compareJson(errorTrackingClientKey, "error-tracking-client-key.json"));
     }
 }

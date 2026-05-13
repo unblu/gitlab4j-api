@@ -12,7 +12,7 @@ GitLab4J&trade; API (gitlab4j-api) provides a full featured and easy to consume 
 GitLab4J-API supports both GitLab Community Edition [(gitlab-ce)](https://gitlab.com/gitlab-org/gitlab-ce/) and GitLab Enterprise Edition [(gitlab-ee)](https://gitlab.com/gitlab-org/gitlab-ee/).
 
 **NOTICE**:  
-As of GitLab 11.0 support for the GitLab API v3 has been removed from the GitLab server (see https://about.gitlab.com/2018/06/01/api-v3-removal-impending/). Support for GitLab API v3 will be removed from this library sometime in 2019. If you are utilizing the v3 support, please update your code to use GitLab API v4.
+As of GitLab 11.0 support for the GitLab API v3 has been removed from the GitLab server (see https://about.gitlab.com/2018/06/01/api-v3-removal-impending/). Support for GitLab API v3 has been removed from this library in April 2025.
 
 ---
 ## Using GitLab4J-API
@@ -31,7 +31,7 @@ To utilize GitLab4J&trade; API in your Java project, simply add the following de
 ```java
 dependencies {
     ...
-    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.0.0-rc.10'
+    implementation group: 'org.gitlab4j', name: 'gitlab4j-api', version: '6.3.0'
 }
 ```
 
@@ -40,7 +40,7 @@ dependencies {
 <dependency>
     <groupId>org.gitlab4j</groupId>
     <artifactId>gitlab4j-api</artifactId>
-    <version>6.0.0-rc.10</version>
+    <version>6.3.0</version>
 </dependency>
 ```
 
@@ -51,7 +51,7 @@ dependencies {
  Just add this line at the top of your script:
 
 ```java
-//DEPS org.gitlab4j:gitlab4j-api:6.0.0-rc.10
+//DEPS org.gitlab4j:gitlab4j-api:6.3.0
 ```
 
 **Ivy and SBT**<br/>
@@ -146,7 +146,7 @@ Those projects might want to use the Jackson-based model classes, and implement 
 ```java
 dependencies {
     ...
-    implementation 'org.gitlab4j:gitlab4j-models:6.0.0-rc.10'
+    implementation 'org.gitlab4j:gitlab4j-models:6.3.0'
 }
 ```
 
@@ -155,7 +155,7 @@ dependencies {
 <dependency>
     <groupId>org.gitlab4j</groupId>
     <artifactId>gitlab4j-models</artifactId>
-    <version>6.0.0-rc.10</version>
+    <version>6.3.0</version>
 </dependency>
 ```
 

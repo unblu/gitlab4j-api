@@ -29,6 +29,7 @@ public class MergeRequestParams implements Serializable {
     private Boolean discussionLocked;
     private Boolean allowCollaboration;
     private Integer approvalsBeforeMerge;
+    private Boolean draft;
 
     /**
      * Set the source branch. This is for merge request creation only.
@@ -221,6 +222,17 @@ public class MergeRequestParams implements Serializable {
     }
 
     /**
+     * Set the draft flag of the merge request.
+     *
+     * @param draft the draft flag to set
+     * @return the reference to this MergeRequestParams instance
+     */
+    public MergeRequestParams withDraft(Boolean draft) {
+        this.draft = draft;
+        return (this);
+    }
+
+    /**
      * Get the form params specified by this instance.
      *
      * @param isCreate set to true if this is for a create merge request API call,
@@ -229,9 +241,16 @@ public class MergeRequestParams implements Serializable {
      */
     public GitLabForm getForm(boolean isCreate) {
 
+        String titleToUse;
+        if (Boolean.TRUE.equals(draft)) {
+            titleToUse = "Draft: " + (title != null ? title : "");
+        } else {
+            titleToUse = title;
+        }
+
         GitLabForm form = new GitLabForm()
                 .withParam("target_branch", targetBranch, isCreate)
-                .withParam("title", title, isCreate)
+                .withParam("title", titleToUse, isCreate)
                 .withParam("assignee_id", assigneeId)
                 .withParam("assignee_ids", assigneeIds)
                 .withParam("reviewer_ids", reviewerIds)

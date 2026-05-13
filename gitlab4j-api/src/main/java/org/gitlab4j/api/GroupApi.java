@@ -35,6 +35,7 @@ import org.gitlab4j.api.models.LdapGroupLink;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.SamlGroupLink;
+import org.gitlab4j.api.models.SharedGroupsFilter;
 import org.gitlab4j.api.models.UploadedFile;
 import org.gitlab4j.api.models.Variable;
 import org.gitlab4j.api.models.Visibility;
@@ -594,6 +595,130 @@ public class GroupApi extends AbstractApi {
      */
     public Stream<Project> getProjectsStream(Object groupIdOrPath) throws GitLabApiException {
         return (getProjects(groupIdOrPath, getDefaultPerPage()).stream());
+    }
+
+    /**
+     * Get a list of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param filter the SharedGroupsFilter instance holding the filter values for the query
+     * @return a List containing the Group instances the given group has been invited to and match the provided filter
+     * @throws GitLabApiException if any exception occurs
+     */
+    public List<Group> getSharedGroups(Object groupIdOrPath, SharedGroupsFilter filter) throws GitLabApiException {
+        return (getSharedGroups(groupIdOrPath, filter, getDefaultPerPage()).all());
+    }
+
+    /**
+     * Get a Pager of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param filter the SharedGroupsFilter instance holding the filter values for the query
+     * @param itemsPerPage the number of Group instances that will be fetched per page
+     * @return a Pager containing the Group instances the given group has been invited to and match the provided filter
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Pager<Group> getSharedGroups(Object groupIdOrPath, SharedGroupsFilter filter, int itemsPerPage)
+            throws GitLabApiException {
+        GitLabApiForm formData = new GitLabApiForm(filter.getQueryParams());
+        return (new Pager<Group>(
+                this,
+                Group.class,
+                itemsPerPage,
+                formData.asMap(),
+                "groups",
+                getGroupIdOrPath(groupIdOrPath),
+                "groups",
+                "shared"));
+    }
+
+    /**
+     * Get a Stream of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param filter the SharedGroupsFilter instance holding the filter values for the query
+     * @return a Stream containing the Group instances the given group has been invited to and match the provided filter
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Stream<Group> getSharedGroupsStream(Object groupIdOrPath, SharedGroupsFilter filter)
+            throws GitLabApiException {
+        return (getSharedGroups(groupIdOrPath, filter, getDefaultPerPage()).stream());
+    }
+
+    /**
+     * Get a list of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @return a list of groups where the specified group ID has been invited
+     * @throws GitLabApiException if any exception occurs
+     */
+    public List<Group> getSharedGroups(Object groupIdOrPath) throws GitLabApiException {
+        return (getSharedGroups(groupIdOrPath, getDefaultPerPage()).all());
+    }
+
+    /**
+     * Get a list of groups in the specified page range where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param page the page to get
+     * @param perPage the number of Group instances per page
+     * @return a list of groups where the specified group ID has been invited in the specified page range
+     * @throws GitLabApiException if any exception occurs
+     */
+    public List<Group> getSharedGroups(Object groupIdOrPath, int page, int perPage) throws GitLabApiException {
+        Response response = get(
+                Response.Status.OK,
+                getPageQueryParams(page, perPage),
+                "groups",
+                getGroupIdOrPath(groupIdOrPath),
+                "groups",
+                "shared");
+        return (response.readEntity(new GenericType<List<Group>>() {}));
+    }
+
+    /**
+     * Get a list of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @param itemsPerPage the number of Group instances that will be fetched per page
+     * @return a Pager of groups where the specified group ID has been invited
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Pager<Group> getSharedGroups(Object groupIdOrPath, int itemsPerPage) throws GitLabApiException {
+        return (new Pager<Group>(
+                this, Group.class, itemsPerPage, null, "groups", getGroupIdOrPath(groupIdOrPath), "groups", "shared"));
+    }
+
+    /**
+     * Get a Stream of groups where the given group has been invited.
+     * When accessed without authentication, only public shared groups are returned.
+     *
+     * <pre><code>GitLab Endpoint: GET /groups/:id/groups/shared</code></pre>
+     *
+     * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
+     * @return a Stream of groups where the specified group ID has been invited
+     * @throws GitLabApiException if any exception occurs
+     */
+    public Stream<Group> getSharedGroupsStream(Object groupIdOrPath) throws GitLabApiException {
+        return (getSharedGroups(groupIdOrPath, getDefaultPerPage()).stream());
     }
 
     /**
@@ -1769,14 +1894,14 @@ public class GroupApi extends AbstractApi {
      * <pre><code>GET /groups/:id/audit_events</code></pre>
      *
      * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
-     * @param created_after Group audit events created on or after the given time.
-     * @param created_before Group audit events created on or before the given time.
+     * @param createdAfter Group audit events created on or after the given time.
+     * @param createdBefore Group audit events created on or before the given time.
      * @return a List of group Audit events
      * @throws GitLabApiException if any exception occurs
      */
-    public List<AuditEvent> getAuditEvents(Object groupIdOrPath, Date created_after, Date created_before)
+    public List<AuditEvent> getAuditEvents(Object groupIdOrPath, Date createdAfter, Date createdBefore)
             throws GitLabApiException {
-        return (getAuditEvents(groupIdOrPath, created_after, created_before, getDefaultPerPage())
+        return (getAuditEvents(groupIdOrPath, createdAfter, createdBefore, getDefaultPerPage())
                 .all());
     }
 
@@ -1786,17 +1911,18 @@ public class GroupApi extends AbstractApi {
      * <pre><code>GET /groups/:id/audit_events</code></pre>
      *
      * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
-     * @param created_after Group audit events created on or after the given time.
-     * @param created_before Group audit events created on or before the given time.
+     * @param createdAfter Group audit events created on or after the given time.
+     * @param createdBefore Group audit events created on or before the given time.
      * @param itemsPerPage the number of Audit Event instances that will be fetched per page
      * @return a Pager of group Audit events
      * @throws GitLabApiException if any exception occurs
      */
     public Pager<AuditEvent> getAuditEvents(
-            Object groupIdOrPath, Date created_after, Date created_before, int itemsPerPage) throws GitLabApiException {
+            Object groupIdOrPath, Date createdAfter, Date createdBefore, int itemsPerPage) throws GitLabApiException {
         Form form = new GitLabApiForm()
-                .withParam("created_before", ISO8601.toString(created_after, false))
-                .withParam("created_after", ISO8601.toString(created_before, false));
+                .withParam("created_after", ISO8601.toString(createdAfter, false))
+                .withParam("created_before", ISO8601.toString(createdBefore, false));
+
         return (new Pager<AuditEvent>(
                 this,
                 AuditEvent.class,
@@ -1813,14 +1939,14 @@ public class GroupApi extends AbstractApi {
      * <pre><code>GET /groups/:id/audit_events</code></pre>
      *
      * @param groupIdOrPath the group ID, path of the group, or a Group instance holding the group ID or path
-     * @param created_after Group audit events created on or after the given time.
-     * @param created_before Group audit events created on or before the given time.
+     * @param createdAfter Group audit events created on or after the given time.
+     * @param createdBefore Group audit events created on or before the given time.
      * @return a Stream of group Audit events
      * @throws GitLabApiException if any exception occurs
      */
-    public Stream<AuditEvent> getAuditEventsStream(Object groupIdOrPath, Date created_after, Date created_before)
+    public Stream<AuditEvent> getAuditEventsStream(Object groupIdOrPath, Date createdAfter, Date createdBefore)
             throws GitLabApiException {
-        return (getAuditEvents(groupIdOrPath, created_after, created_before, getDefaultPerPage()).stream());
+        return (getAuditEvents(groupIdOrPath, createdAfter, createdBefore, getDefaultPerPage()).stream());
     }
 
     /**
@@ -2140,12 +2266,7 @@ public class GroupApi extends AbstractApi {
     public InputStream getAvatar(Object groupIdOrPath) throws GitLabApiException {
 
         Response response = getWithAccepts(
-                Response.Status.OK,
-                null,
-                MediaType.MEDIA_TYPE_WILDCARD,
-                "groups",
-                getGroupIdOrPath(groupIdOrPath),
-                "avatar");
+                Response.Status.OK, null, MediaType.WILDCARD, "groups", getGroupIdOrPath(groupIdOrPath), "avatar");
         return (response.readEntity(InputStream.class));
     }
 

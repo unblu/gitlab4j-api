@@ -52,8 +52,13 @@ build/
 !/gradle/wrapper/gradle-wrapper.jar
 
 # Test properties file for gitlab4j
-test-gitlab4j.properties
-!src/test/resources/test-gitlab4j.properties
+gitlab4j-mock-config-*.properties
+
+# asdf (https://asdf-vm.com/) config file 
+.tool-versions
 
 # git-changelog plugin #
 .okhttpcache
+
+# IntelliJ HTTP Client private environment (contains tokens)
+http-client.private.env.json
